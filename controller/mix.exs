@@ -13,12 +13,16 @@ defmodule Alighieri.Controller.MixProject do
 
   def application do
     [
+      mod: {Alighieri.Controller.Application, []},
       extra_applications: [:logger]
     ]
   end
 
   defp deps do
     [
+      {:jason, "~> 1.4"},
+
+      # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false}
     ]

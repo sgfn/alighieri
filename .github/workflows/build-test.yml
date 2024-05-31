@@ -1,0 +1,104 @@
+name: Build and test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install locked dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build project
+        run: npm run build
+        working-directory: frontend
+
+      - name: Run tests
+        run: npm run test
+        working-directory: frontend
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Elixir+OTP
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '26.2.5'
+          elixir-version: '1.16.3'
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Fetch locked dependencies
+        run: mix deps.get
+        working-directory: backend
+
+      - name: Build project
+        run: mix compile
+        working-directory: backend
+
+      - name: Run tests
+        run: mix test
+        working-directory: backend
+
+      - name: Run linter
+        run: mix format --check-formatted
+        working-directory: backend
+
+      - name: Run Dialyzer
+        run: mix dialyzer
+        working-directory: backend
+
+      - name: Run Credo
+        run: mix credo
+        working-directory: backend
+
+  controller:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Elixir+OTP
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '26.2.5'
+          elixir-version: '1.16.3'
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Fetch locked dependencies
+        run: mix deps.get
+        working-directory: controller
+
+      - name: Build project
+        run: mix compile
+        working-directory: controller
+
+      - name: Run tests
+        run: mix test
+        working-directory: controller
+
+      - name: Run linter
+        run: mix format --check-formatted
+        working-directory: controller
+
+      - name: Run Dialyzer
+        run: mix dialyzer
+        working-directory: controller
+
+      - name: Run Credo
+        run: mix credo
+        working-directory: controller
