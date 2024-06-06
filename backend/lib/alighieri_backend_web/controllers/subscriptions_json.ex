@@ -8,9 +8,4 @@ defmodule Alighieri.BackendWeb.SubscriptionsJSON do
   def create(%{subscription: subscription}) do
     %{subscription: subscription |> Map.from_struct() |> Map.delete(:status)}
   end
-
-  def delete(%{}) do
-    # TODO
-    %{}
-  end
 end

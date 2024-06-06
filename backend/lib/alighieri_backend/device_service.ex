@@ -89,7 +89,8 @@ defmodule Alighieri.Backend.DeviceService do
       # TODO: UPDATE STATE
       {:reply, :ok, state}
     else
-      _other -> {:reply, :error, state}
+      _other ->
+        {:reply, :error, state}
     end
   end
 

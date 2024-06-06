@@ -48,13 +48,23 @@ defmodule Alighieri.Controller.Client do
 
   @impl true
   def handle_call({:subscribe, spec}, _from, state) do
-    result = rpc_call(state.node, Netaudio, :subscribe, [spec])
+    result =
+      case rpc_call(state.node, Netaudio, :subscribe, [spec]) do
+        {:ok, :ok} -> :ok
+        _other -> :error
+      end
+
     {:reply, result, state}
   end
 
   @impl true
   def handle_call({:unsubscribe, rx_spec}, _from, state) do
-    result = rpc_call(state.node, Netaudio, :unsubscribe, [rx_spec])
+    result =
+      case rpc_call(state.node, Netaudio, :unsubscribe, [rx_spec]) do
+        {:ok, :ok} -> :ok
+        _other -> :error
+      end
+
     {:reply, result, state}
   end
 

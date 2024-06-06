@@ -38,6 +38,7 @@ defmodule Alighieri.Backend.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
+      {:cors_plug, "~> 3.0"},
 
       # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
