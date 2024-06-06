@@ -13,9 +13,6 @@ defmodule Alighieri.Backend.MixProject do
     ]
   end
 
-  # Configuration for the OTP application.
-  #
-  # Type `mix help compile.app` for more information.
   def application do
     [
       mod: {Alighieri.Backend.Application, []},
@@ -23,15 +20,15 @@ defmodule Alighieri.Backend.MixProject do
     ]
   end
 
-  # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Specifies your project dependencies.
-  #
-  # Type `mix help deps` for examples and options.
   defp deps do
     [
+      # Alighieri deps
+      {:alighieri_controller, path: "../controller/", runtime: false},
+
+      # Regular deps
       {:phoenix, "~> 1.7.11"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
@@ -41,6 +38,7 @@ defmodule Alighieri.Backend.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
+      {:cors_plug, "~> 3.0"},
 
       # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
@@ -48,12 +46,6 @@ defmodule Alighieri.Backend.MixProject do
     ]
   end
 
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to install project dependencies and perform other setup tasks, run:
-  #
-  #     $ mix setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup"],

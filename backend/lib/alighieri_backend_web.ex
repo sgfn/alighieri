@@ -37,9 +37,7 @@ defmodule Alighieri.BackendWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: Alighieri.BackendWeb.Layouts]
+      use Phoenix.Controller, formats: [:json]
 
       import Plug.Conn
 

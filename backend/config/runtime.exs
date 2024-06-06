@@ -93,3 +93,9 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 end
+
+config :alighieri_backend,
+  controller_node:
+    System.get_env("ALI_DIST_CONTROLLER_NODE", "alicontroller@controller") |> String.to_atom(),
+  node: System.get_env("ALI_DIST_NODE", "alighieri@backend") |> String.to_atom(),
+  dist_cookie: System.get_env("ALI_DIST_COOKIE", "alighieri-cookie") |> String.to_atom()
