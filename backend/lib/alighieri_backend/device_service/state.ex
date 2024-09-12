@@ -7,6 +7,7 @@ defmodule Alighieri.Backend.DeviceService.State do
   @type devices :: %{device_id() => Device.t()}
 
   @type t :: %__MODULE__{
+          client: term(),
           devices: devices(),
           device_mac_to_id: %{String.t() => device_id()},
           device_name_to_id: %{String.t() => device_id()},
@@ -14,7 +15,7 @@ defmodule Alighieri.Backend.DeviceService.State do
           last_fetch: integer()
         }
 
-  @enforce_keys []
+  @enforce_keys [:client]
 
   defstruct @enforce_keys ++
               [

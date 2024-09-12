@@ -5,9 +5,9 @@ defmodule Alighieri.Backend.DeviceService do
 
   require Logger
 
-  alias Alighieri.{ChannelAddress, Subscription}
+  alias Alighieri.{ChannelAddress, Client, Controller, Subscription}
   alias Alighieri.Backend.DeviceService.State
-  alias Alighieri.Controller.Client
+  alias Alighieri.Backend.DummyClient
 
   @device_fetch_interval_ms 15_000
 
@@ -41,10 +41,19 @@ defmodule Alighieri.Backend.DeviceService do
 
   @impl true
   def init([%{node: node}]) do
-    {:ok, _client} = Client.start_link(%{node: node})
+    client =
+      if node == :dummy do
+        Logger.info("Using dummy client")
+        {:ok, _client} = DummyClient.start_link(%{})
+        DummyClient
+      else
+        {:ok, _client} = Controller.Client.start_link(%{node: node})
+        Controller.Client
+      end
+
     send(self(), :fetch_devices)
 
-    {:ok, %State{}}
+    {:ok, %State{client: client}}
   end
 
   @impl true
@@ -85,7 +94,7 @@ defmodule Alighieri.Backend.DeviceService do
          true <- spec.receiver.channel_name in receiver.channels.receivers,
          true <- spec.transmitter.channel_name in transmitter.channels.transmitters,
          # XXX: maybe verify further? e.g. is subscription already present?
-         :ok <- Client.subscribe(spec) do
+         :ok <- state.client.subscribe(spec) do
       # TODO: UPDATE STATE
       {:reply, :ok, state}
     else
@@ -99,7 +108,7 @@ defmodule Alighieri.Backend.DeviceService do
     with {:ok, receiver} <- State.get_device(state, name: rx_spec.device_name),
          true <- rx_spec.channel_name in receiver.channels.receivers,
          # XXX: maybe verify further?
-         :ok <- Client.unsubscribe(rx_spec) do
+         :ok <- state.client.unsubscribe(rx_spec) do
       # TODO: UPDATE STATE
       {:reply, :ok, state}
     else
@@ -134,7 +143,7 @@ defmodule Alighieri.Backend.DeviceService do
   end
 
   defp fetch_devices(pid) do
-    case Client.list_devices() do
+    case state.client.list_devices() do
       {:ok, devices} -> send(pid, {:devices, devices})
       error -> Logger.warning("Unable to fetch devices: #{inspect(error)}")
     end
