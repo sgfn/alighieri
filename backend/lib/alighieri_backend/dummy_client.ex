@@ -4,7 +4,7 @@ defmodule Alighieri.Backend.DummyClient do
   @behaviour Alighieri.Client
 
   use GenServer
-  alias Alighieri.Device
+  alias Alighieri.{Channels, Device}
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -86,13 +86,42 @@ defmodule Alighieri.Backend.DummyClient do
 
   @impl true
   def handle_call({:subscribe, spec}, _from, state) do
-    # add sub
-    {:reply, :ok, state}
+    rx_name = spec.receiver.device_name
+
+    with {:ok, receiver} <- Map.fetch(state.devices, rx_name),
+         {:ok, transmitter} <- Map.fetch(state.devices, spec.transmitter.device_name),
+         true <- spec.receiver.channel_name in receiver.channels.receivers,
+         true <- spec.transmitter.channel_name in transmitter.channels.transmitters,
+         true <- receiver.sample_rate == transmitter.sample_rate,
+         false <- subscription_present?(receiver.subscriptions, spec) do
+      state = update_in(state.devices[rx_name].subscriptions, & [spec | &1])
+
+      {:reply, :ok, state}
+    else
+      _other -> {:reply, :error, state}
+    end
   end
 
   @impl true
   def handle_call({:unsubscribe, rx_spec}, _from, state) do
-    # rem sub
-    {:reply, :ok, state}
+    rx_name = rx_spec.device_name
+
+    with {:ok, receiver} <- Map.fetch(state.devices, rx_name),
+         true <- rx_spec.channel_name in receiver.channels.receivers,
+         true <- subscription_present?(receiver.subscriptions, rx_spec) do
+      state = update_in(state.devices[rx_name].subscriptions, &Enum.reject(&1, fn sub ->
+        sub.receiver.channel_name == rx_spec.channel_name
+      end))
+
+      {:reply, :ok, state}
+    else
+      _other -> {:reply, :error, state}
+    end
+  end
+
+  defp subscription_present?(subscriptions, spec) do
+    Enum.any?(subscriptions, fn sub ->
+      sub.receiver.channel_name == spec.receiver.channel_name
+    end)
   end
 end

@@ -122,7 +122,7 @@ defmodule Alighieri.Backend.DeviceService do
 
     # XXX: consider refactoring into a dedicated fetcher module
     self_pid = self()
-    _pid = spawn_link(fn -> fetch_devices(self_pid) end)
+    _pid = spawn_link(fn -> fetch_devices(state.client, self_pid) end)
     Process.send_after(self(), :fetch_devices, @device_fetch_interval_ms)
 
     {:noreply, state}
@@ -142,8 +142,8 @@ defmodule Alighieri.Backend.DeviceService do
     {:noreply, state}
   end
 
-  defp fetch_devices(pid) do
-    case state.client.list_devices() do
+  defp fetch_devices(client, pid) do
+    case client.list_devices() do
       {:ok, devices} -> send(pid, {:devices, devices})
       error -> Logger.warning("Unable to fetch devices: #{inspect(error)}")
     end
