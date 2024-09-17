@@ -8,6 +8,8 @@ defmodule Alighieri.Controller.Client do
   alias Alighieri.Controller.Netaudio
   alias Alighieri.{ChannelAddress, Subscription}
 
+  @behaviour Alighieri.Client
+
   @ping_interval_ms 10_000
   @rpc_timeout_ms 5_000
 
@@ -15,17 +17,17 @@ defmodule Alighieri.Controller.Client do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  @spec list_devices() :: {:ok, term()} | :error
+  @impl Alighieri.Client
   def list_devices() do
     GenServer.call(__MODULE__, :list_devices)
   end
 
-  @spec subscribe(Subscription.t()) :: :ok | :error
+  @impl Alighieri.Client
   def subscribe(spec) do
     GenServer.call(__MODULE__, {:subscribe, spec})
   end
 
-  @spec unsubscribe(ChannelAddress.t()) :: :ok | :error
+  @impl Alighieri.Client
   def unsubscribe(rx_spec) do
     GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
   end
@@ -68,7 +70,6 @@ defmodule Alighieri.Controller.Client do
     {:reply, result, state}
   end
 
-  # def handle_info(:ping_controller, state) do
   # def handle_info(:ping_controller, state) do
   #   Process.send_after(self(), :ping_controller, @ping_interval_ms)
 
