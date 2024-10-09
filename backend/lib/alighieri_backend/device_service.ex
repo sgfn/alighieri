@@ -39,6 +39,10 @@ defmodule Alighieri.Backend.DeviceService do
     GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
   end
 
+  def config_device(name, options) do
+    GenServer.call(__MODULE__, {:config_device, name, options})
+  end
+
   @impl true
   def init([%{node: node}]) do
     client =
@@ -114,6 +118,12 @@ defmodule Alighieri.Backend.DeviceService do
     else
       _other -> {:reply, :error, state}
     end
+  end
+
+  @impl true
+  def handle_call({:config_device, name, options}, _from, state) do
+    with {:ok, device} <- State.get_device(state, name: name),
+
   end
 
   @impl true

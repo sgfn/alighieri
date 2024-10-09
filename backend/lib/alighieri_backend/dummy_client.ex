@@ -3,6 +3,10 @@ defmodule Alighieri.Backend.DummyClient do
 
   @behaviour Alighieri.Client
 
+  @allowed_encodings [16, 24, 32]
+  @allowed_gain_levels [1, 2, 3, 4, 5]
+  @allowed_sample_rates [44100, 48000, 88200, 96000, 176400, 192000]
+
   use GenServer
   alias Alighieri.{Channels, Device}
 
@@ -26,6 +30,11 @@ defmodule Alighieri.Backend.DummyClient do
   end
 
   @impl true
+  def config_device(device_name, options) do
+    GenServer.call(__MODULE__, {:config_device, device_name, options})
+  end
+
+  @impl true
   def init(_args) do
     devices = [
       %Device{
@@ -36,7 +45,7 @@ defmodule Alighieri.Backend.DummyClient do
         },
         ipv4: "10.0.21.37",
         mac_address: "DE:AD:BE:EF:CA:FE",
-        sample_rate: 69420,
+        sample_rate: 44100,
         subscriptions: []
       },
       %Device{
@@ -69,7 +78,7 @@ defmodule Alighieri.Backend.DummyClient do
         },
         ipv4: "10.0.21.40",
         mac_address: "DE:AD:BE:EF:CA:FF",
-        sample_rate: 69420,
+        sample_rate: 44100,
         subscriptions: []
       }
     ]
@@ -119,9 +128,35 @@ defmodule Alighieri.Backend.DummyClient do
     end
   end
 
+  @impl true
+  def handle_call({:config_device, device_name, options}, _from, state) do
+    with {:ok, device} <- Map.fetch(state.devices, device_name) do
+      new_device =
+        Enum.reduce_while(options, device, fn option, device ->
+          case validate_option(option, device) do
+            {:ok, device} -> {:cont, device}
+            :error -> {:halt, :error}
+          end
+        end)
+
+      if new_device == :error,
+        do: {:reply, :error, state},
+        else: {:reply, :ok, put_in(state.devices[device_name], new_device)}
+    else
+      _other -> {:reply, :error, state}
+    end
+  end
+
   defp subscription_present?(subscriptions, spec) do
     Enum.any?(subscriptions, fn sub ->
       sub.receiver.channel_name == spec.receiver.channel_name
     end)
   end
+
+  defp validate_option({:encoding, v}, device) when v in @allowed_encodings, do: {:ok, device}
+  defp validate_option({:gain_level, v}, device) when v in @allowed_gain_levels, do: {:ok, device}
+  defp validate_option({:sample_rate, v}, device) when v in @allowed_sample_rates,
+    do: {:ok, %Device{device | sample_rate: v}}
+  defp validate_option({:latency, v}, device) when is_integer(v) and v >= 0, do: {:ok, device}
+  defp validate_option(_other, _state), do: :error
 end
