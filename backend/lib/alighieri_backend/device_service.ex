@@ -5,7 +5,7 @@ defmodule Alighieri.Backend.DeviceService do
 
   require Logger
 
-  alias Alighieri.{ChannelAddress, Client, Controller, Subscription}
+  alias Alighieri.{ChannelAddress, Controller, Subscription}
   alias Alighieri.Backend.DeviceService.State
   alias Alighieri.Backend.DummyClient
 
@@ -39,8 +39,8 @@ defmodule Alighieri.Backend.DeviceService do
     GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
   end
 
-  def config_device(name, options) do
-    GenServer.call(__MODULE__, {:config_device, name, options})
+  def config_device(id, options) do
+    GenServer.call(__MODULE__, {:config_device, id, options})
   end
 
   @impl true
@@ -121,9 +121,15 @@ defmodule Alighieri.Backend.DeviceService do
   end
 
   @impl true
-  def handle_call({:config_device, name, options}, _from, state) do
-    with {:ok, device} <- State.get_device(state, name: name),
-
+  def handle_call({:config_device, id, options}, _from, state) do
+    with {:ok, device} <- State.get_device(state, id: id),
+         # XXX: maybe verify further?
+         :ok <- state.client.config_device(device.name, options) do
+      # TODO: UPDATE STATE
+      {:reply, :ok, state}
+    else
+      _other -> {:reply, :error, state}
+    end
   end
 
   @impl true
@@ -143,6 +149,8 @@ defmodule Alighieri.Backend.DeviceService do
     Logger.debug("Fetched device list")
 
     # TODO: remove nonexistent devices!
+    #       (nontrivial because of IDs, maybe devices should be marked as hidden if not present?)
+    #         also XXX: persist device IDs?
     state =
       Enum.reduce(devices, state, fn device, state ->
         State.put_device(state, device)
