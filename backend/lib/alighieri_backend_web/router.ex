@@ -11,6 +11,7 @@ defmodule Alighieri.BackendWeb.Router do
     scope "/devices" do
       get "/", DevicesController, :index
       get "/:device_id", DevicesController, :show
+      post "/:device_id/config", DevicesController, :config
     end
 
     scope "/subscriptions" do

@@ -3,6 +3,13 @@ defmodule Alighieri.Device do
 
   alias Alighieri.{Channels, Subscription}
 
+  @type option ::
+          {:encoding, non_neg_integer()}
+          | {:gain_level, non_neg_integer()}
+          | {:latency, non_neg_integer()}
+          | {:sample_rate, non_neg_integer()}
+  @type options :: [option()]
+
   @type t :: %__MODULE__{
           name: String.t(),
           channels: Channels.t(),

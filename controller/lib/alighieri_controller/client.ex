@@ -6,11 +6,10 @@ defmodule Alighieri.Controller.Client do
   require Logger
 
   alias Alighieri.Controller.Netaudio
-  alias Alighieri.{ChannelAddress, Subscription}
 
   @behaviour Alighieri.Client
 
-  @ping_interval_ms 10_000
+  # @ping_interval_ms 10_000
   @rpc_timeout_ms 5_000
 
   def start_link(args) do
@@ -30,6 +29,11 @@ defmodule Alighieri.Controller.Client do
   @impl Alighieri.Client
   def unsubscribe(rx_spec) do
     GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
+  end
+
+  @impl Alighieri.Client
+  def config_device(device_name, options) do
+    GenServer.call(__MODULE__, {:config_device, device_name, options})
   end
 
   @impl true
@@ -63,6 +67,17 @@ defmodule Alighieri.Controller.Client do
   def handle_call({:unsubscribe, rx_spec}, _from, state) do
     result =
       case rpc_call(state.node, Netaudio, :unsubscribe, [rx_spec]) do
+        {:ok, :ok} -> :ok
+        _other -> :error
+      end
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:config_device, device_name, options}, _from, state) do
+    result =
+      case rpc_call(state.node, Netaudio, :config_device, [device_name, options]) do
         {:ok, :ok} -> :ok
         _other -> :error
       end

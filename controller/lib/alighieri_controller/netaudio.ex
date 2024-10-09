@@ -5,6 +5,10 @@ defmodule Alighieri.Controller.Netaudio do
 
   alias Alighieri.{ChannelAddress, Channels, Device, Subscription}
 
+  @allowed_encodings [16, 24, 32]
+  @allowed_gain_levels [1, 2, 3, 4, 5]
+  @allowed_sample_rates [44_100, 48_000, 88_200, 96_000, 176_400, 192_000]
+
   @spec version!() :: String.t() | no_return()
   def version!(), do: run_netaudio_cmd!(["-V"], false)
 
@@ -72,12 +76,15 @@ defmodule Alighieri.Controller.Netaudio do
     end
   end
 
-  def config_channel!() do
-    raise "Not implemented"
-  end
-
-  def config_device!() do
-    raise "Not implemented"
+  @spec config_device(String.t(), Device.options()) :: :ok | :error
+  def config_device(device_name, options) do
+    with flags when is_list(flags) <- validate_options(options),
+         {:ok, _result} <-
+           run_netaudio_cmd(["config", "--device-name", device_name] ++ flags, false) do
+      :ok
+    else
+      _other -> :error
+    end
   end
 
   defp run_netaudio_cmd!(args, json? \\ true) do
@@ -87,7 +94,7 @@ defmodule Alighieri.Controller.Netaudio do
     end
   end
 
-  defp run_netaudio_cmd(args, json? \\ true) do
+  defp run_netaudio_cmd(args, json?) do
     start_time = System.monotonic_time(:millisecond)
     Logger.debug("Execute: netaudio #{Enum.join(args, " ")}")
 
@@ -104,4 +111,27 @@ defmodule Alighieri.Controller.Netaudio do
       :error
     end
   end
+
+  defp validate_options(options) do
+    Enum.reduce_while(options, [], fn option, acc ->
+      case validate_option(option) do
+        {:ok, flags} -> {:cont, acc ++ flags}
+        :error -> {:halt, :error}
+      end
+    end)
+  end
+
+  defp validate_option({:encoding, v}) when v in @allowed_encodings,
+    do: {:ok, ["--set-encoding", to_string(v)]}
+
+  defp validate_option({:gain_level, v}) when v in @allowed_gain_levels,
+    do: {:ok, ["--set-gain-level", to_string(v)]}
+
+  defp validate_option({:sample_rate, v}) when v in @allowed_sample_rates,
+    do: {:ok, ["--set-sample-rate", to_string(v)]}
+
+  defp validate_option({:latency, v}) when is_integer(v) and v >= 0,
+    do: {:ok, ["--set-latency", to_string(v)]}
+
+  defp validate_option(_other), do: :error
 end
