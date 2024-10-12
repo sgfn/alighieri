@@ -1,4 +1,5 @@
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
+import DHCPSettings from "./DHCPSettings";
 import Frame from "./Frame";
 
 export default function InfoView() {
@@ -15,7 +16,7 @@ export default function InfoView() {
                         some text
                     </TabPanel>
                     <TabPanel>
-                        some text 2
+                        <DHCPSettings />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
