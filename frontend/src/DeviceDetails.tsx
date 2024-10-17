@@ -1,9 +1,7 @@
 import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
-import { Device, DeviceStatus, StatusToIcon } from "./DeviceList";
+import { Device } from "./types";
 
-// interface DeviceDetailsProps {
-
-// }
+// interface DeviceDetailsProps {}
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -23,12 +21,12 @@ export default function DeviceDetails(device: Device) {
                     <Flex>
                         <Text>ip address:</Text>
                         <Spacer width='10px'/>
-                        <Text fontWeight='semibold'>{device.ip}</Text>
+                        <Text fontWeight='semibold'>{device.ipv4}</Text>
                     </Flex>
                     <Flex>
                         <Text>mac address:</Text>
                         <Spacer width='10px'/>
-                        <Text fontWeight='semibold'>{device.mac}</Text>
+                        <Text fontWeight='semibold'>{device.macAddress}</Text>
                     </Flex>
                     <Flex>
                         <Text>sample rate:</Text>
@@ -39,70 +37,17 @@ export default function DeviceDetails(device: Device) {
                     <Box>
                         <Text>channels:</Text>
                         <UnorderedList pl='4'>
-                        <ListItem>
-                                <Text>inputs:</Text>
-                                <UnorderedList>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH1</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(device.status)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH2</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(DeviceStatus.Error)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH3</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(DeviceStatus.Unknown)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH4</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(device.status)}
-                                        </Flex>
-                                    </ListItem>
-                                </UnorderedList>
-                            </ListItem><ListItem>
-                                <Text>outputs:</Text>
-                                <UnorderedList>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH1</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(DeviceStatus.Ok)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH2</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(DeviceStatus.Ok)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH3</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(DeviceStatus.Unknown)}
-                                        </Flex>
-                                    </ListItem>
-                                    <ListItem>
-                                        <Flex alignItems='center'>
-                                            <Text>CH4</Text>
-                                            <Spacer width='2'/>
-                                            {StatusToIcon(device.status)}
-                                        </Flex>
-                                    </ListItem>
-                                </UnorderedList>
+                        <ListItem key={device.id + '/inputs'}>
+                            <Text>inputs:</Text>
+                            <UnorderedList>
+                                {device.channels.transmitters.map((channelName, ) => channelRow({channelName: channelName, deviceId: device.id}))}
+                            </UnorderedList>
+                        </ListItem>
+                        <ListItem key={device.id + '/outputs'}>
+                            <Text>outputs:</Text>
+                            <UnorderedList>
+                                {device.channels.receivers.map((channelName) => channelRow({channelName: channelName, deviceId: device.id}))}
+                            </UnorderedList>
                             </ListItem>
                         </UnorderedList>
                     </Box>
@@ -117,5 +62,22 @@ export default function DeviceDetails(device: Device) {
             </ModalContent>
         </Modal>
         </>
+    )
+}
+
+interface channelRowProps {
+    channelName: string,
+    deviceId: number
+}
+
+function channelRow({channelName, deviceId}: channelRowProps) {
+    return(
+        <ListItem key={deviceId + '/inputs/' + channelName}>
+            <Flex alignItems='center'>
+                <Text>{channelName}</Text>
+                {/* <Spacer width='2'/>
+                {StatusToIcon(DeviceStatus.Ok)} */}
+            </Flex>
+        </ListItem>
     )
 }
