@@ -28,7 +28,7 @@ export interface ErrorResponse {
     error: string;
 }
 
-export interface DeviceJson{
+export interface DeviceJson {
     id: number;
     name: string;
     channels: Channels;
@@ -39,7 +39,7 @@ export interface DeviceJson{
 }
 
 export function deviceFromJson(deviceJson: DeviceJson) {
-    return(
+    return (
         {
             id: deviceJson.id,
             name: deviceJson.name,
@@ -51,3 +51,30 @@ export function deviceFromJson(deviceJson: DeviceJson) {
         }
     )
 }
+
+export interface SubscriptionJson {
+    receiver: ChannelAddressJson,
+    transmitter: ChannelAddressJson,
+    status: string
+}
+
+export interface ChannelAddressJson {
+    device_name: string,
+    channel_name: string,
+}
+export function subscriptionFromJson(subscriptionJson: SubscriptionJson): Subscription {
+    return (
+        {
+            receiver: {
+                deviceName: subscriptionJson.receiver.device_name,
+                channelName: subscriptionJson.receiver.channel_name,
+            },
+            transmitter: {
+                deviceName: subscriptionJson.transmitter.device_name,
+                channelName: subscriptionJson.transmitter.channel_name,
+            },
+            status: subscriptionJson.status
+        }
+    )
+}
+
