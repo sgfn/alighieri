@@ -1,4 +1,5 @@
 import { Box, Center, Text } from "@chakra-ui/react";
+import { ArrowDownIcon } from "@chakra-ui/icons"
 import { addEdge, Controls, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
@@ -46,16 +47,16 @@ export default function RoutingView() {
         <Frame>
             <Box>
                 <div style={{ width: '778px', height: '670px', border: '1px solid red' }}>
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    nodeTypes={nodeTypes}>
-                    <Controls />
-                    <MiniMap />
-                </ReactFlow>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        nodeTypes={nodeTypes}>
+                        <Controls />
+                        <MiniMap />
+                    </ReactFlow>
                 </div>
             </Box>
         </Frame>
@@ -65,9 +66,9 @@ export default function RoutingView() {
 export function getNodes(devices: Device[]): Node[] {
     let y_pos = -64;
     const nodes: Node[] = [];
-    devices.forEach((device) =>  {
+    devices.forEach((device) => {
         y_pos += 64;
-        nodes.push({id: device.id.toString(), position: { x: 0, y: y_pos }, type: 'danteNode', data: { device: device } });
+        nodes.push({ id: device.id.toString(), position: { x: 0, y: y_pos }, type: 'danteNode', data: { device: device } });
     })
     return nodes;
 }
@@ -76,26 +77,29 @@ export function getEdges(devices: Device[]) {
 
 }
 
-function DanteNode({data}: any) {
+function DanteNode({ data }: any) {
     let top = 0;
     let bot = 0;
+    const posChange = 20;
     return (
-      <>
-        <Box border='1px solid black' borderRadius='4px' p='2' minW='64px' bg='white'>
-          <Center>
-            <Text>{data.device.name}</Text>
-          </Center>
-        </Box>
-        {data.device.channels.transmitters.map((transmitter: string) => {
-            bot += 1;
-            return (<Handle type="source" position={Position.Bottom} key={data.device.id + "/" + transmitter} id={data.device.id + "/" + transmitter} style={{left: 10 * bot}}/>)
+        <>
+            <Box border='1px solid black' borderRadius='4px' p='2' minW='64px' bg='white'>
+                <Center>
+                    <Text>{data.device.name}</Text>
+                </Center>
+            </Box>
+            {data.device.channels.transmitters.map((transmitter: string) => {
+                bot += 1;
+                return (<Handle type="source" position={Position.Bottom} key={data.device.id + "/" + transmitter} id={data.device.id + "/" + transmitter} style={{ left: posChange * bot, backgroundColor: '#2C7A7B', width: '12px', height: '12px' }} >
+                    <ArrowDownIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' pointerEvents='none' />
+                </Handle>)
             })
-        }
-        {data.device.channels.receivers.map((receiver: string) => {
-            top += 1;
-            return (<Handle type="target" position={Position.Top} key={data.device.id + "/" + receiver} id={data.device.id + "/" + receiver} style={{left: 10 * top}}/>)
+            }
+            {data.device.channels.receivers.map((receiver: string) => {
+                top += 1;
+                return (<Handle type="target" position={Position.Top} key={data.device.id + "/" + receiver} id={data.device.id + "/" + receiver} style={{ left: posChange * top, backgroundColor: '#C53030', width: '12px', height: '12px' }}><ArrowDownIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' /></Handle>)
             })
-        }
-      </>
+            }
+        </>
     );
 }
