@@ -77,4 +77,49 @@ export function subscriptionFromJson(subscriptionJson: SubscriptionJson): Subscr
         }
     )
 }
+export function subscriptionToJson(subscription: Subscription): SubscriptionJson {
+    return {
+        receiver: {
+            device_name: subscription.receiver.deviceName,
+            channel_name: subscription.receiver.channelName
+        },
+        transmitter: {
+            device_name: subscription.transmitter.deviceName,
+            channel_name: subscription.transmitter.channelName
+        },
+        status: subscription.status
+    };
+}
+export interface SimpleSubscription {
+    receiver: ChannelAddress,
+    transmitter: ChannelAddress
+}
 
+export interface SimpleSubscriptionJson {
+    receiver: ChannelAddressJson,
+    transmitter: ChannelAddressJson,
+}
+export function simpleSubscriptionFromJson(json: SimpleSubscriptionJson): SimpleSubscription {
+    return {
+        receiver: {
+            deviceName: json.receiver.device_name,
+            channelName: json.receiver.channel_name,
+        },
+        transmitter: {
+            deviceName: json.transmitter.device_name,
+            channelName: json.transmitter.channel_name,
+        }
+    };
+}
+export function simpleSubscriptionToJson(simpleSubscription: SimpleSubscription): SimpleSubscriptionJson {
+    return {
+        receiver: {
+            device_name: simpleSubscription.receiver.deviceName,
+            channel_name: simpleSubscription.receiver.channelName,
+        },
+        transmitter: {
+            device_name: simpleSubscription.transmitter.deviceName,
+            channel_name: simpleSubscription.transmitter.channelName,
+        }
+    };
+}
