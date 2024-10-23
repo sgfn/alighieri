@@ -1,5 +1,5 @@
-import { ArrowDownIcon } from "@chakra-ui/icons";
-import { Box, Center, Text } from "@chakra-ui/react";
+import { ArrowDownIcon, ArrowForwardIcon, ArrowLeftIcon } from "@chakra-ui/icons";
+import { Box, Center, Text, Tooltip } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
@@ -125,35 +125,47 @@ export function getEdges(subscriptions: Subscription[]) {
             target: subscription.receiver.deviceName,
             targetHandle: 'rx_' + subscription.receiver.channelName,
             // type: 'smoothstep',
-            style: {
-                strokeWidth: 2,
-            },
         })));
     return edges;
 }
 
 function DanteNode({ data }: any) {
-    let top = 0;
-    let bot = 0;
-    const posChange = 20;
+    let right = -1;
+    let left = -1;
+    const device: Device = data.device;
+    const handleMargin: number = 16;
+    const offset: number = 20;
+    const height = (Math.max(device.channels.transmitters.length, device.channels.receivers.length) - 1) * offset + 2 * handleMargin;
     return (
         <>
-            <Box border='1px solid black' borderRadius='4px' p='2' minW='64px' bg='white'>
+            <Center border='1px solid black' borderRadius='8px' p='2' minW='64px' bg='gray.300' h={`${height}px`} >
                 <Center>
-                    <Text>{data.device.name}</Text>
+                    <Text>{device.name}</Text>
                 </Center>
-            </Box>
-            {data.device.channels.transmitters.map((transmitter: string) => {
-                bot += 1;
-                return (<Handle type="source" position={Position.Bottom} key={data.device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ left: posChange * bot, backgroundColor: '#2C7A7B', width: '12px', height: '12px' }} >
-                    <ArrowDownIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' pointerEvents='none' />
-                </Handle>)
-            })
+            </Center>
+            {
+                device.channels.transmitters.map((transmitter: string) => {
+                    right += 1;
+                    return (
+                        <Tooltip label={transmitter}>
+                            <Handle type="source" position={Position.Right} key={device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ top: handleMargin + offset * right, width: '12px', height: '12px', borderColor: 'black' }} >
+                                <ArrowForwardIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' pointerEvents='none' />
+                            </Handle>
+                        </Tooltip>
+                    )
+                })
             }
-            {data.device.channels.receivers.map((receiver: string) => {
-                top += 1;
-                return (<Handle type="target" position={Position.Top} key={data.device.name + "/" + receiver} id={"rx_" + receiver} style={{ left: posChange * top, backgroundColor: '#C53030', width: '12px', height: '12px' }}><ArrowDownIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' /></Handle>)
-            })
+            {
+                device.channels.receivers.map((receiver: string) => {
+                    left += 1;
+                    return (
+                        <Tooltip label={receiver}>
+                            <Handle type="target" position={Position.Left} key={device.name + "/" + receiver} id={"rx_" + receiver} style={{ top: handleMargin + offset * left, backgroundColor: '#C53030', width: '12px', height: '12px', borderColor: 'black' }}>
+                                <ArrowForwardIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' />
+                            </Handle>
+                        </Tooltip>
+                    )
+                })
             }
         </>
     );
