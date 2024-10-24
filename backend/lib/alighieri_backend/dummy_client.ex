@@ -49,9 +49,9 @@ defmodule Alighieri.Backend.DummyClient do
         subscriptions: []
       },
       %Device{
-        name: "GLOSNIK",
+        name: "GLOSNIK1",
         channels: %Channels{
-          receivers: ["CH1", "CH2"],
+          receivers: ["CH1"],
           transmitters: []
         },
         ipv4: "10.0.21.38",
@@ -63,7 +63,7 @@ defmodule Alighieri.Backend.DummyClient do
         name: "MIKROFON",
         channels: %Channels{
           receivers: [],
-          transmitters: ["CH1", "CH2"]
+          transmitters: ["CH1"]
         },
         ipv4: "10.0.21.39",
         mac_address: "AA:BB:CC:DD:EE:01",
@@ -77,7 +77,51 @@ defmodule Alighieri.Backend.DummyClient do
           transmitters: ["CH1", "CH2", "CH3", "CH4"]
         },
         ipv4: "10.0.21.40",
-        mac_address: "DE:AD:BE:EF:CA:FF",
+        mac_address: "AA:BB:CC:DD:EE:02",
+        sample_rate: 44_100,
+        subscriptions: []
+      },
+      %Device{
+        name: "GLOSNIK2",
+        channels: %Channels{
+          receivers: ["CH1"],
+          transmitters: []
+        },
+        ipv4: "10.0.21.41",
+        mac_address: "AA:BB:CC:DD:EE:03",
+        sample_rate: 44_100,
+        subscriptions: []
+      },
+      %Device{
+        name: "KOMPUTER1",
+        channels: %Channels{
+          receivers: ["CH1", "CH2"],
+          transmitters: ["CH1", "CH2"]
+        },
+        ipv4: "10.0.21.42",
+        mac_address: "AA:BB:CC:DD:EE:04",
+        sample_rate: 44_100,
+        subscriptions: []
+      },
+      %Device{
+        name: "KOMPUTER2",
+        channels: %Channels{
+          receivers: ["CH1", "CH2"],
+          transmitters: ["CH1", "CH2"]
+        },
+        ipv4: "10.0.21.43",
+        mac_address: "AA:BB:CC:DD:EE:05",
+        sample_rate: 44_100,
+        subscriptions: []
+      },
+      %Device{
+        name: "GLOSNIK3",
+        channels: %Channels{
+          receivers: ["CH1"],
+          transmitters: []
+        },
+        ipv4: "10.0.21.44",
+        mac_address: "AA:BB:CC:DD:EE:06",
         sample_rate: 44_100,
         subscriptions: []
       }
