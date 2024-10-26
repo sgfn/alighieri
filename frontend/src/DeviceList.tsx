@@ -59,9 +59,9 @@ function DeviceRow(device: Device) {
             <Td>
                 <Flex alignItems='center'>
                     <Text>{device.ipv4}</Text>
-                    <Spacer/>
+                    <Spacer />
                     {/* <Button variant='outline' borderWidth='2px' borderColor='gray.600' height='30px'>Details</Button> */}
-                    <DeviceDetails {...device}/>
+                    <DeviceDetails {...device} />
                 </Flex>
             </Td>
         </Tr>
@@ -76,11 +76,11 @@ export enum DeviceStatus {
 
 export function StatusToIcon(status: DeviceStatus) {
     if (status === DeviceStatus.Ok) {
-        return(<CheckCircleIcon color='green.400' />)
+        return (<CheckCircleIcon color='green.400' />)
     } else if (status === DeviceStatus.Error) {
-        return(<WarningIcon color='red.400'/>)
+        return (<WarningIcon color='red.400' />)
     } else {
-        return(<QuestionIcon color='blue.400'/>)
+        return (<QuestionIcon color='blue.400' />)
     }
 }
 

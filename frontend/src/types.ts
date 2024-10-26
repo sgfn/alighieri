@@ -35,7 +35,7 @@ export interface DeviceJson{
     ipv4: string;
     mac_address: string;
     sample_rate: number;
-    subscriptions: Subscription[];
+    subscriptions: SubscriptionJson[];
 }
 
 export function deviceFromJson(deviceJson: DeviceJson) {
@@ -47,7 +47,7 @@ export function deviceFromJson(deviceJson: DeviceJson) {
             ipv4: deviceJson.ipv4,
             macAddress: deviceJson.mac_address,
             sampleRate: deviceJson.sample_rate,
-            subscriptions: deviceJson.subscriptions
+            subscriptions: deviceJson.subscriptions.map((subscription) => subscriptionFromJson(subscription))
         }
     )
 }
