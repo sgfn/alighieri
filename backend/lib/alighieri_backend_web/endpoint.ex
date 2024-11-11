@@ -11,6 +11,11 @@ defmodule Alighieri.BackendWeb.Endpoint do
     same_site: "Lax"
   ]
 
+  plug Corsica,
+    origins: "*",
+    allow_headers: :all,
+    allow_methods: :all
+
   # socket "/live", Phoenix.LiveView.Socket,
   #   websocket: [connect_info: [session: @session_options]],
   #   longpoll: [connect_info: [session: @session_options]]
@@ -43,6 +48,5 @@ defmodule Alighieri.BackendWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug CORSPlug
   plug Alighieri.BackendWeb.Router
 end

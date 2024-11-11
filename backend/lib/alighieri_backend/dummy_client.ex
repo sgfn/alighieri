@@ -96,13 +96,14 @@ defmodule Alighieri.Backend.DummyClient do
   @impl true
   def handle_call({:subscribe, spec}, _from, state) do
     rx_name = spec.receiver.device_name
+    rx_channel = spec.receiver.channel_name
 
     with {:ok, receiver} <- Map.fetch(state.devices, rx_name),
          {:ok, transmitter} <- Map.fetch(state.devices, spec.transmitter.device_name),
          true <- spec.receiver.channel_name in receiver.channels.receivers,
          true <- spec.transmitter.channel_name in transmitter.channels.transmitters,
          true <- receiver.sample_rate == transmitter.sample_rate,
-         false <- subscription_present?(receiver.subscriptions, spec) do
+         false <- subscription_present?(receiver.subscriptions, rx_channel) do
       state = update_in(state.devices[rx_name].subscriptions, &[spec | &1])
 
       {:reply, :ok, state}
@@ -114,10 +115,11 @@ defmodule Alighieri.Backend.DummyClient do
   @impl true
   def handle_call({:unsubscribe, rx_spec}, _from, state) do
     rx_name = rx_spec.device_name
+    rx_channel = rx_spec.channel_name
 
     with {:ok, receiver} <- Map.fetch(state.devices, rx_name),
          true <- rx_spec.channel_name in receiver.channels.receivers,
-         true <- subscription_present?(receiver.subscriptions, rx_spec) do
+         true <- subscription_present?(receiver.subscriptions, rx_channel) do
       state =
         update_in(
           state.devices[rx_name].subscriptions,
@@ -148,9 +150,9 @@ defmodule Alighieri.Backend.DummyClient do
     end
   end
 
-  defp subscription_present?(subscriptions, spec) do
+  defp subscription_present?(subscriptions, rx_channel) do
     Enum.any?(subscriptions, fn sub ->
-      sub.receiver.channel_name == spec.receiver.channel_name
+      sub.receiver.channel_name == rx_channel
     end)
   end
 
