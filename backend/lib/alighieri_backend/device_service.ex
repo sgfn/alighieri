@@ -116,7 +116,9 @@ defmodule Alighieri.Backend.DeviceService do
       # TODO: UPDATE STATE
       {:reply, :ok, state}
     else
-      _other -> {:reply, :error, state}
+      {:error, _} -> {:reply, {:error, :device_not_found}, state}
+      false -> {:reply, {:error, :channel_not_found}, state}
+      _other -> {:reply, {:error, :unknown_error}, state}
     end
   end
 

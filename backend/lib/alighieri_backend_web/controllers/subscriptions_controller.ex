@@ -65,9 +65,12 @@ defmodule Alighieri.BackendWeb.SubscriptionsController do
     else
       true ->
         {:error, :bad_request, "Invalid request body structure"}
-
+      {:error, :device_not_found} ->
+        {:error, :not_found, "There is no device named `#{rx_name}`"}
+      {:error, :channel_not_found} ->
+        {:error, :not_found, "Device `#{rx_name}` has no channel `#{rx_channel}`"}
       # TODO TODO TODO
-      :error ->
+      _other ->
         {:error, :service_unavailable, "Unable to remove subscription"}
     end
   end
