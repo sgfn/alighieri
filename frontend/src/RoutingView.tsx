@@ -3,8 +3,9 @@ import { Box, Center, Text, Tooltip } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
+import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
-import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, simpleSubscriptionToJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
+import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription } from "./types";
 
 const BASE_URL = "http://localhost:4000/";
 
@@ -22,20 +23,10 @@ export default function RoutingView() {
 
     useEffect(() => {
         const fetchDevices = async () => {
-            try {
-                const response = await fetch(BASE_URL + 'devices');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const jsonData = await response.json();
-                const devices: Device[] = jsonData.devices.map((json: DeviceJson) => deviceFromJson(json));
-                setDevices(devices);
-                setNodes(getNodes(devices));
-            } catch (error) {
-                console.error("Failed to fetch devices:", error);
-            }
+            const devices = await getDevices();
+            setDevices(devices);
+            setNodes(getNodes(devices));
         };
-
         fetchDevices();
     }, []);
 
@@ -203,55 +194,4 @@ function getSimpleSubscriptionJson(edges: Edge[], edgeId: string): SimpleSubscri
                 channel_name: properEdge.targetHandle.slice(3)
             }
         })
-}
-
-async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
-    console.log('creating subscription', subscriptionJson);
-    console.log(JSON.stringify(subscriptionJson));
-    try {
-        const response = await fetch(BASE_URL + 'subscriptions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(subscriptionJson)
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-    } catch (error) {
-        console.error("Failed to add subscription", error);
-    }
-}
-async function deleteSubscription(subscriptionJson: SimpleSubscriptionJson) {
-    console.log('deleting subscription', subscriptionJson);
-    console.log('json', JSON.stringify({ receiver: subscriptionJson.receiver }));
-    try {
-        const response = await fetch(BASE_URL + 'subscriptions', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ receiver: subscriptionJson.receiver })
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-    } catch (error) {
-        console.error("Failed to add subscription", error);
-    }
-}
-async function getSubscriptions(): Promise<Subscription[]> {
-
-    try {
-        const response = await fetch(BASE_URL + 'subscriptions');
-        if (!response.ok) {
-            throw new Error('HTTP error! Status: ${response.status}');
-        }
-        const jsonData = await response.json();
-        return jsonData.subscriptions.map((subscription: SubscriptionJson) => subscriptionFromJson(subscription));
-    } catch (error) {
-        console.error("failed to fetch subscriptions: ", error);
-        return []
-    }
 }
