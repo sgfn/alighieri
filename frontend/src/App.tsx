@@ -1,26 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
+import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import './App.css';
+// import RoutingTable from './RoutingTable';
+import Homepage from './Homepage';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const customTheme = extendTheme({
+        components: {
+            Text: {
+                baseStyle: {
+                    fontWeight: 'normal',
+                    color: 'gray.900'
+                }
+            },
+        },
+    });
+
+    return (
+        <ChakraProvider theme={customTheme}>
+            <Homepage />
+        </ChakraProvider>
+    );
 }
 
 export default App;
