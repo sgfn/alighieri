@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowForwardIcon, ArrowLeftIcon } from "@chakra-ui/icons";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { Box, Center, Text, Tooltip, useToast, UseToastOptions } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
 import * as toaster from "./toaster";
-import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription } from "./types";
+import { Device, SimpleSubscriptionJson, Subscription } from "./types";
 
 
 export default function RoutingView() {
@@ -29,7 +29,7 @@ export default function RoutingView() {
             setNodes(getNodes(devices));
         };
         fetchDevices();
-    }, []);
+    }, [setNodes]);
 
 
     useEffect(() => {
@@ -39,7 +39,7 @@ export default function RoutingView() {
             setEdges(getEdges(subs));
         }
         fetchSubscriptions();
-    }, []);
+    }, [setEdges]);
 
 
     const onConnect = useCallback(
@@ -61,7 +61,7 @@ export default function RoutingView() {
                 toast(toastError(`Couldn't create subscription: ${error}`));
             }
         },
-        [setEdges],
+        [setEdges, toast],
     );
 
     async function customOnEdgesChange(changes: any) {
@@ -85,7 +85,7 @@ export default function RoutingView() {
 
     return (
         <Frame>
-            <Box w='778px' h='670px' >
+            <Box w='100%' h='100%'>
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
