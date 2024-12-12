@@ -18,6 +18,7 @@ export async function createSubscription(subscriptionJson: SimpleSubscriptionJso
     }
   } catch (error) {
     console.error("Failed to add subscription", error);
+    throw error;
   }
 }
 export async function deleteSubscription(subscriptionJson: SimpleSubscriptionJson) {
@@ -36,6 +37,7 @@ export async function deleteSubscription(subscriptionJson: SimpleSubscriptionJso
     }
   } catch (error) {
     console.error("Failed to add subscription", error);
+    throw error;
   }
 }
 export async function getSubscriptions(): Promise<Subscription[]> {

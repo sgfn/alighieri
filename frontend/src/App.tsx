@@ -15,11 +15,11 @@ function App() {
         },
     });
 
-  return (
-    <ChakraProvider theme={customTheme}>
-        <Homepage />
-    </ChakraProvider>
-  );
+    return (
+        <ChakraProvider theme={customTheme}>
+            <Homepage />
+        </ChakraProvider>
+    );
 }
 
 export default App;

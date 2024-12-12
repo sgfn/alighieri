@@ -1,15 +1,16 @@
 import { ArrowDownIcon, ArrowForwardIcon, ArrowLeftIcon } from "@chakra-ui/icons";
-import { Box, Center, Text, Tooltip } from "@chakra-ui/react";
+import { Box, Center, Text, Tooltip, useToast, UseToastOptions } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
+import * as toaster from "./toaster";
 import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription } from "./types";
 
-const BASE_URL = "http://localhost:4000/";
 
 export default function RoutingView() {
+    const toast = useToast();
     const nodeTypes = { danteNode: DanteNode }
 
     const [devices, setDevices] = useState<Device[]>([])
@@ -42,27 +43,28 @@ export default function RoutingView() {
 
 
     const onConnect = useCallback(
-        (params: any) => {
-            setEdges((eds) => addEdge(params, eds));
-            console.log('params')
-            console.log(params)
-
-            createSubscription({
-                receiver: {
-                    device_name: params.target,
-                    channel_name: params.targetHandle.slice(3)
-                },
-                transmitter: {
-                    device_name: params.source,
-                    channel_name: params.sourceHandle.slice(3)
-                }
-            });
-
+        async (params: any) => {
+            try {
+                let response = await createSubscription({
+                    receiver: {
+                        device_name: params.target,
+                        channel_name: params.targetHandle.slice(3)
+                    },
+                    transmitter: {
+                        device_name: params.source,
+                        channel_name: params.sourceHandle.slice(3)
+                    }
+                });
+                setEdges((eds) => addEdge(params, eds));
+                toast(toastSuccess(`Subscription created successfully: ${response}`));
+            } catch (error) {
+                toast(toastError(`Couldn't create subscription: ${error}`));
+            }
         },
         [setEdges],
     );
 
-    function customOnEdgesChange(changes: any) {
+    async function customOnEdgesChange(changes: any) {
         console.log(edges);
         console.log(changes);
         onEdgesChange(changes)
@@ -72,7 +74,12 @@ export default function RoutingView() {
                 console.log('subscriptions does not exist');
                 return;
             }
-            deleteSubscription(simpleSubscriptionJson);
+            try {
+                let response = await deleteSubscription(simpleSubscriptionJson);
+                toast(toastSuccess(`Subscription deleted successfully: ${response}`));
+            } catch (error) {
+                toast(toastError(`Couldn't delete subscription: ${error}`));
+            }
         }
     }
 
@@ -84,7 +91,6 @@ export default function RoutingView() {
                     edges={edges}
                     onNodesChange={onNodesChange}
                     onEdgesChange={customOnEdgesChange}
-                    // onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
                     nodeTypes={nodeTypes}>
                     <Controls />
@@ -194,4 +200,18 @@ function getSimpleSubscriptionJson(edges: Edge[], edgeId: string): SimpleSubscri
                 channel_name: properEdge.targetHandle.slice(3)
             }
         })
+}
+
+function toastSuccess(message: string): UseToastOptions {
+    return toaster.toastSuccessParams({
+        title: 'routing success',
+        message: message
+    })
+}
+
+function toastError(message: string): UseToastOptions {
+    return toaster.toastErrorParams({
+        title: 'routing error',
+        message: message
+    })
 }
