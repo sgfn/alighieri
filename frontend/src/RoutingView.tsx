@@ -118,7 +118,7 @@ export function getEdges(subscriptions: Subscription[]) {
         {
             id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName,
             source: subscription.transmitter.deviceName,
-            sourceHandle: 'tx_' + subscription.receiver.channelName,
+            sourceHandle: 'tx_' + subscription.transmitter.channelName,
             target: subscription.receiver.deviceName,
             targetHandle: 'rx_' + subscription.receiver.channelName,
             // type: 'smoothstep',
