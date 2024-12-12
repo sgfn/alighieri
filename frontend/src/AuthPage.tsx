@@ -1,4 +1,4 @@
-import { Box, Button, Center, Input, InputGroup, InputRightElement, useToast, VStack } from "@chakra-ui/react";
+import { Button, Center, Input, InputGroup, InputRightElement, useToast, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import Frame from "./Frame";
 import { toastErrorParams } from "./toaster";
@@ -32,6 +32,11 @@ export default function AuthPage({ setLoggedIn }: AuthPageProps) {
           <Input placeholder='login' variant='outline' borderWidth='2px' borderColor='gray.600' color='gray.600'
             value={login}
             onChange={(event) => setLogin(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                handleLogIn();
+              }
+            }}
           />
           <InputGroup>
             <Input
@@ -42,6 +47,11 @@ export default function AuthPage({ setLoggedIn }: AuthPageProps) {
               color='gray.600'
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleLogIn();
+                }
+              }}
             />
             <InputRightElement width='4.5rem'>
               <Button h='1.75rem' size='sm' variant='outline' borderWidth='1px' borderColor='gray.600' onClick={() => setShowPassword(!showPassword)}>
