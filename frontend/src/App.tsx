@@ -1,5 +1,7 @@
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
+import { useState } from 'react';
 import './App.css';
+import AuthPage from './AuthPage';
 // import RoutingTable from './RoutingTable';
 import Homepage from './Homepage';
 
