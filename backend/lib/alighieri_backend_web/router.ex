@@ -5,7 +5,21 @@ defmodule Alighieri.BackendWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", Alighieri.BackendWeb do
+  scope "/", Alighieri.BackendWeb do
     pipe_through :api
+
+    scope "/devices" do
+      get "/", DevicesController, :index
+      get "/:device_id", DevicesController, :show
+      post "/:device_id/config", DevicesController, :config
+    end
+
+    scope "/subscriptions" do
+      resources("/", SubscriptionsController, only: [:show, :create, :delete], singleton: true)
+    end
+
+    scope "/channels" do
+      get "/", ChannelsController, :show
+    end
   end
 end

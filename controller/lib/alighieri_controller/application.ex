@@ -5,56 +5,52 @@ defmodule Alighieri.Controller.Application do
 
   require Logger
 
-  # in milliseconds
-  @epmd_timeout 5_000
-  @epmd_pgrep_interval 500
+  @epmd_timeout_ms 5_000
+  @epmd_pgrep_interval_ms 500
 
   @impl true
   def start(_type, _args) do
     Logger.info("Starting Alighieri controller")
 
-    children =
-      [
-        # {Registry, keys: :unique, name: Alighieri.Controller.Registry},
-      ]
+    :ok = setup_distribution()
+    Alighieri.Controller.Netaudio.version!() |> Logger.info()
 
-    System.get_env("ALIGHIERI_NETAUDIO_PATH", "netaudio")
-    |> then(&Application.put_env(:alighieri_controller, :netaudio_path, &1))
-
-    config_distribution()
+    children = [
+      # {Registry, keys: :unique, name: Alighieri.Controller.Registry},
+    ]
 
     opts = [strategy: :one_for_one, name: Alighieri.Controller.Supervisor]
 
     Supervisor.start_link(children, opts)
   end
 
-  defp config_distribution() do
+  defp setup_distribution() do
     :ok = ensure_epmd_started!()
 
     if Node.alive?() do
       Logger.info("Node #{Node.self()} already alive")
     else
-      System.get_env("ALIGHIERI_NODE_NAME", "controller@controller")
-      |> String.to_atom()
+      Application.fetch_env!(:alighieri_controller, :node)
       |> Node.start(:longnames)
       |> case do
         {:ok, _} ->
+          Logger.info("Started node #{Node.self()}")
           :ok
 
         {:error, reason} ->
           raise "Couldn't start node, reason: #{inspect(reason)}"
       end
 
-      Node.set_cookie(:"test-cookie")
+      Application.fetch_env!(:alighieri_controller, :dist_cookie) |> Node.set_cookie()
     end
 
-    []
+    :ok
   end
 
   defp ensure_epmd_started!() do
     try do
       {_output, 0} = System.cmd("epmd", ["-daemon"])
-      :ok = Task.async(&ensure_epmd_running/0) |> Task.await(@epmd_timeout)
+      :ok = Task.async(&ensure_epmd_running/0) |> Task.await(@epmd_timeout_ms)
 
       :ok
     catch
@@ -71,7 +67,7 @@ defmodule Alighieri.Controller.Application do
       :ok
     else
       {:pgrep, _other} ->
-        Process.sleep(@epmd_pgrep_interval)
+        Process.sleep(@epmd_pgrep_interval_ms)
         ensure_epmd_running()
 
       {:epmd, _other} ->

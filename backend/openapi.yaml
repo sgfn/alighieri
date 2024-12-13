@@ -1,0 +1,301 @@
+---
+components:
+  responses: {}
+  schemas:
+    Error:
+      description: Error message
+      properties:
+        error:
+          description: Error details
+          example: not found
+          type: string
+      required:
+        - error
+      title: Error
+      type: object
+    Channels:
+      description: Device channels description
+      properties:
+        receivers:
+          description: Receiving side (RX) channels
+          type: array
+          items:
+            description: Channel name
+            example: CH1
+            type: string
+        transmitters:
+          description: Transmitting side (TX) channels
+          type: array
+          items:
+            description: Channel name
+            example: CH1
+            type: string
+      required:
+        - receivers
+        - transmitters
+      title: Channels
+      type: object
+    ChannelAddress:
+      description: Device channel specification
+      properties:
+        device_name:
+          description: Device name
+          example: DA11USB-ABCDEF
+          type: string
+        channel_name:
+          description: Channel name
+          example: CH1
+          type: string
+      required:
+        - device_name
+        - channel_name
+      title: ChannelAddress
+      type: object
+    Subscription:
+      description: Subscription specification
+      properties:
+        receiver:
+          $ref: '#/components/schemas/ChannelAddress'
+        transmitter:
+          $ref: '#/components/schemas/ChannelAddress'
+        status:
+          description: Subscription status
+          example: Connected (Unicast)
+          type: string
+      required:
+        - receiver
+        - transmitter
+        - status
+      title: Subscription
+      type: object
+    Device:
+      description: Dante device description
+      properties:
+        id:
+          description: Device id
+          example: 123
+          type: integer
+        name:
+          description: Device name
+          example: DA11USB-ABCDEF
+          type: string
+        channels:
+          $ref: '#/components/schemas/Channels'
+        ipv4:
+          description: Device IPv4 address
+          example: 10.0.0.14
+          type: string
+        mac_address:
+          description: Device MAC address
+          example: aabbccddeeff
+          type: string
+        sample_rate:
+          description: Sample rate currently configured on the device
+          example: 48000
+          type: integer
+        subscriptions:
+          description: Current subscriptions in which this device is the receiving side (RX)
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+      required:
+        - id
+        - name
+        - channels
+        - ipv4
+        - mac_address
+        - sample_rate
+        - subscriptions
+      title: Device
+      type: object
+  # securitySchemes:
+  #   authorization:
+  #     scheme: bearer
+  #     type: http
+info:
+  title: alighieri
+  version: 0.1.0-dev
+servers:
+  - url: http://localhost:4000/
+openapi: 3.0.0
+paths:
+  /devices:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+                required:
+                  - devices
+                type: object
+          description: List of managed Dante devices
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Service temporarily unavailable
+      summary: Get list of currently managed devices
+  /devices/{id}:
+    get:
+      parameters:
+        - description: Device ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  device:
+                    $ref: '#/components/schemas/Device'
+                required:
+                  - device
+                type: object
+          description: Device description
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request parameters
+        # '401':
+        #   content:
+        #     application/json:
+        #       schema:
+        #         $ref: '#/components/schemas/Error'
+        #   description: Unauthorized
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+      # security:
+      #   - authorization: []
+      summary: Get a device by ID
+  /channels:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  channels:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/Channels'
+                    description: Mapping device_name => Channels
+                required:
+                  - channels
+                type: object
+          description: Specification of available channels
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Service temporarily unavailable
+      summary: Get specification of available channels
+  /subscriptions:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  subscriptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+                required:
+                  - subscriptions
+                type: object
+          description: List of current subscriptions
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Service temporarily unavailable
+      summary: Get list of current subscriptions
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiver:
+                  $ref: '#/components/schemas/ChannelAddress'
+                transmitter:
+                  $ref: '#/components/schemas/ChannelAddress'
+              required:
+                - receiver
+                - transmitter
+        description: Subscription specification
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Subscription created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request parameters
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Service temporarily unavailable
+      summary: Create a subscription
+    delete:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiver:
+                  $ref: '#/components/schemas/ChannelAddress'
+              required:
+                - receiver
+        description: Subscription specification
+        required: true
+      responses:
+        '204':
+          description: Subscription deleted successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request parameters
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Service temporarily unavailable
+      summary: Delete a subscription
+security: []
+tags: []

@@ -1,6 +1,5 @@
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import './App.css';
-// import RoutingTable from './RoutingTable';
 import Homepage from './Homepage';
 
 function App() {
@@ -15,11 +14,11 @@ function App() {
         },
     });
 
-  return (
-    <ChakraProvider theme={customTheme}>
-        <Homepage />
-    </ChakraProvider>
-  );
+    return (
+        <ChakraProvider theme={customTheme}>
+            <Homepage />
+        </ChakraProvider>
+    );
 }
 
 export default App;
