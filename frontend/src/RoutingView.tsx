@@ -5,12 +5,14 @@ import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
+import SubscriptionEdge from "./SubscriptionEdge";
 import { Device, SimpleSubscriptionJson, Subscription } from "./types";
 
 
 export default function RoutingView() {
     const toast = useToast();
     const nodeTypes = { danteNode: DanteNode }
+    const edgeTypes = { subscriptionEdge: SubscriptionEdge }
 
     const [devices, setDevices] = useState<Device[]>([])
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -46,7 +48,8 @@ export default function RoutingView() {
 
     const onConnect = useCallback(
         async (params: any) => {
-            setEdges((eds) => addEdge(params, eds));
+            const edge = { ...params, type: 'subscriptionEdge' }
+            setEdges((eds) => addEdge(edge, eds));
             console.log(`edges`);
             console.log(edges);
             let subscriptionPromise = createSubscription({
@@ -106,7 +109,8 @@ export default function RoutingView() {
                     onNodesChange={onNodesChange}
                     onEdgesChange={customOnEdgesChange}
                     onConnect={onConnect}
-                    nodeTypes={nodeTypes}>
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}>
                     <Controls />
                     <MiniMap />
                 </ReactFlow>
@@ -135,7 +139,8 @@ export function getEdges(subscriptions: Subscription[]) {
             sourceHandle: 'tx_' + subscription.transmitter.channelName,
             target: subscription.receiver.deviceName,
             targetHandle: 'rx_' + subscription.receiver.channelName,
-            // type: 'smoothstep',
+            type: 'subscriptionEdge',
+            data: { status: subscription.status }
         })));
     return edges;
 }
