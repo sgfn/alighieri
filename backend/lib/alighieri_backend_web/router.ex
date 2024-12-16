@@ -8,10 +8,13 @@ defmodule Alighieri.BackendWeb.Router do
   scope "/", Alighieri.BackendWeb do
     pipe_through :api
 
+    post "/dhcp", DhcpController, :config
+
     scope "/devices" do
       get "/", DevicesController, :index
       get "/:device_id", DevicesController, :show
       post "/:device_id/config", DevicesController, :config
+      post "/:device_id/identify", DevicesController, :identify
     end
 
     scope "/subscriptions" do
@@ -20,6 +23,10 @@ defmodule Alighieri.BackendWeb.Router do
 
     scope "/channels" do
       get "/", ChannelsController, :show
+    end
+
+    scope "/config" do
+      resources("/", ConfigController, only: [:show, :create], singleton: true)
     end
   end
 end

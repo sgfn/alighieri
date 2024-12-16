@@ -21,6 +21,7 @@ defmodule Alighieri.Controller.MixProject do
   defp deps do
     [
       {:jason, "~> 1.4"},
+      {:dhcp_server, "~> 0.7"},
 
       # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
