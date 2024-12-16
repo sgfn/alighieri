@@ -1,11 +1,10 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { Box, Center, Text, Tooltip, useToast, UseToastOptions } from "@chakra-ui/react";
+import { Box, Center, Text, Tooltip, useToast } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
-import * as toaster from "./toaster";
 import { Device, SimpleSubscriptionJson, Subscription } from "./types";
 
 
