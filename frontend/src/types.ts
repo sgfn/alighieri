@@ -123,3 +123,9 @@ export function simpleSubscriptionToJson(simpleSubscription: SimpleSubscription)
         }
     };
 }
+
+export interface DhcpSettings {
+    netmask: string,
+    range_from: string,
+    range_to: string
+}
