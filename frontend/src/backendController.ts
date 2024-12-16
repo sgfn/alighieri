@@ -89,3 +89,19 @@ export async function setDhcpSettings(dhcpSettings: DhcpSettings) {
     throw error;
   }
 }
+
+export async function identifyDevice(deviceId: number) {
+  console.log(`identify device ${deviceId}`);
+  try {
+    const response = await fetch(`${BASE_URL}/devices/${deviceId}/identify`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to identify device", error);
+    throw error;
+  }
+}
+

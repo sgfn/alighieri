@@ -1,10 +1,12 @@
 import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
+import { identifyDevice } from "./backendController";
 import { Device } from "./types";
-
-// interface DeviceDetailsProps {}
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
+
+    const canBeFound = device.channels.receivers.length > 0;
+
     return (
         <>
             <Button onClick={onOpen} variant='outline' borderWidth='2px' borderColor='gray.600' height='30px'>details</Button>
@@ -55,7 +57,7 @@ export default function DeviceDetails(device: Device) {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }}>find device</Button>
+                        {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}
                         <Spacer />
                         <Button onClick={onClose} bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }}>close</Button>
                     </ModalFooter>
