@@ -37,7 +37,7 @@ defmodule Alighieri.Controller.Client do
   end
 
   def config_dhcp(options) do
-    Generator.call(__MODULE__, {:config_dhcp, options})
+    GenServer.call(__MODULE__, {:config_dhcp, options})
   end
 
   @impl true

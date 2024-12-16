@@ -7,8 +7,8 @@ defmodule Alighieri.Controller.DHCP do
 
   @default_iface "eth0"
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, @default_config, name: __MODULE__)
+  def start_link(config) do
+    GenServer.start_link(__MODULE__, config, name: __MODULE__)
   end
 
   def apply_config(config) do
