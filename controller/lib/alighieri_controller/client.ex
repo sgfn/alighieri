@@ -5,12 +5,12 @@ defmodule Alighieri.Controller.Client do
 
   require Logger
 
-  alias Alighieri.Controller.Netaudio
+  alias Alighieri.Controller.{DHCP, Netaudio}
 
   @behaviour Alighieri.Client
 
   # @ping_interval_ms 10_000
-  @rpc_timeout_ms 5_000
+  @rpc_timeout_ms 18_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -34,6 +34,10 @@ defmodule Alighieri.Controller.Client do
   @impl Alighieri.Client
   def config_device(device_name, options) do
     GenServer.call(__MODULE__, {:config_device, device_name, options})
+  end
+
+  def config_dhcp(options) do
+    Generator.call(__MODULE__, {:config_dhcp, options})
   end
 
   @impl true
@@ -78,6 +82,17 @@ defmodule Alighieri.Controller.Client do
   def handle_call({:config_device, device_name, options}, _from, state) do
     result =
       case rpc_call(state.node, Netaudio, :config_device, [device_name, options]) do
+        {:ok, :ok} -> :ok
+        _other -> :error
+      end
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:config_dhcp, options}, _from, state) do
+    result =
+      case rpc_call(state.node, DHCP, :apply_config, [options]) do
         {:ok, :ok} -> :ok
         _other -> :error
       end

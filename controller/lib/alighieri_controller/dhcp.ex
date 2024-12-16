@@ -6,15 +6,9 @@ defmodule Alighieri.Controller.DHCP do
   require Logger
 
   @default_iface "eth0"
-  @default_config [
-    netmask: "255.255.255.0",
-    range: {"10.0.0.100", "10.0.0.199"},
-    gateway: "10.0.0.1",
-    domain_servers: []
-  ]
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  def start_link(_opts) do
+    GenServer.start_link(__MODULE__, @default_config, name: __MODULE__)
   end
 
   def apply_config(config) do
@@ -22,17 +16,20 @@ defmodule Alighieri.Controller.DHCP do
   end
 
   @impl true
-  def init(opts) do
-    {:ok, server} = DHCPServer.start_link(@default_iface, @default_config)
+  def init(config) do
+    {iface, config} = Keyword.pop(config, :iface, @default_iface)
+    Logger.debug("Starting DHCP server\nIface: #{inspect(iface)}\nConfig: #{inspect(config)}")
+    {:ok, server} = DHCPServer.start_link(iface, config)
 
-    {:ok, %{server: server}}
+    {:ok, %{iface: iface, server: server}}
   end
 
   @impl true
-  def handle_call({:apply_config, config}, _from, %{server: server}) do
-    :ok = DHCPServer.stop(server)
-    {:ok, server} = DHCPServer.start_link(@default_iface, config)
+  def handle_call({:apply_config, config}, _from, state) do
+    Logger.debug("Restarting DHCP server\nConfig: #{inspect(config)}")
+    :ok = DHCPServer.stop(state.server)
+    {:ok, server} = DHCPServer.start_link(state.iface, config)
 
-    {:reply, :ok, %{server: server}}
+    {:reply, :ok, %{state | server: server}}
   end
 end
