@@ -26,12 +26,12 @@ export default function DeviceDetails(device: Device) {
                             <Flex>
                                 <Text>mac address:</Text>
                                 <Spacer width='10px' />
-                                <Text fontWeight='semibold'>{device.macAddress}</Text>
+                                <Text fontWeight='semibold'>{formatMacAddress(device.macAddress)}</Text>
                             </Flex>
                             <Flex>
                                 <Text>sample rate:</Text>
                                 <Spacer width='10px' />
-                                <Text fontWeight='semibold'>{device.sampleRate}</Text>
+                                <Text fontWeight='semibold'>{formatWithSpaces(device.sampleRate)}Hz</Text>
                             </Flex>
                             <Spacer height='20px' />
                             <Box>
@@ -80,4 +80,36 @@ function channelRow({ channelName, deviceId }: channelRowProps) {
             </Flex>
         </ListItem>
     )
+}
+
+function formatMacAddress(input: string): string {
+    const macWithColonsRegex = /^([0-9A-Fa-f]{2}[:]){5,7}([0-9A-Fa-f]{2})$/;
+    const macWithoutColons6OctetRegex = /^[0-9A-Fa-f]{12}$/;
+    const macWithoutColons8OctetRegex = /^[0-9A-Fa-f]{16}$/;
+
+    let formattedInput: string;
+
+    if (macWithoutColons6OctetRegex.test(input)) {
+        formattedInput = input.replace(/(.{2})(?=.)/g, '$1:');
+    } else if (macWithoutColons8OctetRegex.test(input)) {
+        formattedInput = input.replace(/(.{2})(?=.)/g, '$1:');
+    } else if (macWithColonsRegex.test(input)) {
+        formattedInput = input;
+    } else {
+        throw new Error('Invalid MAC address format');
+    }
+
+    const parts = formattedInput.split(':');
+
+    if (parts.length === 8 && parts[3] === 'ff' && parts[4] === 'fe') {
+        const cleanedParts = [...parts.slice(0, 3), ...parts.slice(5)];
+        return cleanedParts.join(':');
+    }
+
+    return formattedInput;
+}
+
+function formatWithSpaces(input: number): string {
+    const cleanedInput = input.toString();
+    return cleanedInput.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
