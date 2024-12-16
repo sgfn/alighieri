@@ -2,6 +2,7 @@ defmodule Alighieri.BackendWeb.DevicesController do
   use Alighieri.BackendWeb, :controller
 
   alias Alighieri.Backend.DeviceService
+  alias Alighieri.ChannelAddress
 
   action_fallback Alighieri.BackendWeb.FallbackController
 
@@ -64,10 +65,12 @@ defmodule Alighieri.BackendWeb.DevicesController do
     end
   end
 
-  def identify(conn, %{"device_id" => device_id} = params) do
-    with {id, _rem} <- Integer.parse(device_id),
-         {:ok, device} <- DeviceService.get_device(id) do
-      DeviceService.identify(id)
+  def identify(conn, params) do
+    name = params["device_name"]
+    channel = params["channel_name"]
+
+    with false <- is_nil(name) or is_nil(channel) do
+      DeviceService.identify(%ChannelAddress{device_name: name, channel_name: channel})
       send_resp(conn, :no_content, "")
     else
       :error ->

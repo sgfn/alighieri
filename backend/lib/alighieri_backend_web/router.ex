@@ -14,8 +14,8 @@ defmodule Alighieri.BackendWeb.Router do
       get "/", DevicesController, :index
       get "/:device_id", DevicesController, :show
       post "/:device_id/config", DevicesController, :config
-      post "/:device_id/identify", DevicesController, :identify
     end
+    post "/identify", DevicesController, :identify
 
     scope "/subscriptions" do
       resources("/", SubscriptionsController, only: [:show, :create, :delete], singleton: true)

@@ -51,8 +51,8 @@ defmodule Alighieri.Backend.DeviceService do
     GenServer.call(__MODULE__, {:config_dhcp, options})
   end
 
-  def identify(id) do
-    GenServer.call(__MODULE__, {:identify, id}, @long_cmd_timeout_ms * 2)
+  def identify(caddr) do
+    GenServer.call(__MODULE__, {:identify, caddr}, @long_cmd_timeout_ms * 2)
   end
 
   def get_config() do
@@ -164,17 +164,17 @@ defmodule Alighieri.Backend.DeviceService do
 
   @impl true
   # XXX this is ultra long, should it really be a call?
-  def handle_call({:identify, id}, _from, state) do
-    with {:ok, device} <- State.get_device(state, id: id),
-         channel when not is_nil(channel) <- List.first(device.channels.receivers) do
+  def handle_call({:identify, caddr}, _from, state) do
+    with {:ok, device} <- State.get_device(state, name: caddr.device_name),
+         true <- caddr.channel_name in device.channels.receivers do
       {post_identify_hook, state} =
-        case maybe_subscription(device.subscriptions, channel) do
+        case maybe_subscription(device.subscriptions, caddr.channel_name) do
           nil ->
-            IO.inspect("SUBSCRIPTION ABSENT, NOOP")
+            # IO.inspect("SUBSCRIPTION ABSENT, NOOP")
             {fn state -> state end, state}
 
           subscription ->
-            IO.inspect("SUBSCRIPTION PRESENT, UNSUBSCRIBING")
+            # IO.inspect("SUBSCRIPTION PRESENT, UNSUBSCRIBING")
             # XXX handle not-ok
             {:reply, :ok, state} = handle_call({:unsubscribe, subscription.receiver}, nil, state)
 
@@ -187,7 +187,7 @@ defmodule Alighieri.Backend.DeviceService do
         end
 
       tmp_sub = %Subscription{
-        receiver: %ChannelAddress{device_name: device.name, channel_name: channel},
+        receiver: caddr,
         transmitter: %ChannelAddress{device_name: @my_device, channel_name: @my_channel}
       }
       {:reply, :ok, state} = handle_call({:subscribe, tmp_sub}, nil, state)
