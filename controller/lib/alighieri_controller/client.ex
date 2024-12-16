@@ -23,21 +23,25 @@ defmodule Alighieri.Controller.Client do
 
   @impl Alighieri.Client
   def subscribe(spec) do
-    GenServer.call(__MODULE__, {:subscribe, spec})
+    GenServer.call(__MODULE__, {:subscribe, spec}, @rpc_timeout_ms)
   end
 
   @impl Alighieri.Client
   def unsubscribe(rx_spec) do
-    GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
+    GenServer.call(__MODULE__, {:unsubscribe, rx_spec}, @rpc_timeout_ms)
   end
 
   @impl Alighieri.Client
   def config_device(device_name, options) do
-    GenServer.call(__MODULE__, {:config_device, device_name, options})
+    GenServer.call(__MODULE__, {:config_device, device_name, options}, @rpc_timeout_ms)
   end
 
   def config_dhcp(options) do
     GenServer.call(__MODULE__, {:config_dhcp, options})
+  end
+
+  def play_sound() do
+    GenServer.call(__MODULE__, :play_sound, @rpc_timeout_ms)
   end
 
   @impl true
@@ -93,6 +97,17 @@ defmodule Alighieri.Controller.Client do
   def handle_call({:config_dhcp, options}, _from, state) do
     result =
       case rpc_call(state.node, DHCP, :apply_config, [options]) do
+        {:ok, :ok} -> :ok
+        _other -> :error
+      end
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call(:play_sound, _from, state) do
+    result =
+      case rpc_call(state.node, Identifier, :play_sound, []) do
         {:ok, :ok} -> :ok
         _other -> :error
       end

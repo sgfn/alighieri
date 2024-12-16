@@ -30,7 +30,7 @@ defmodule Alighieri.Controller.DHCP do
   def handle_call({:apply_config, config}, _from, state) do
     config = prep_config(config)
     Logger.debug("Restarting DHCP server\nConfig: #{inspect(config)}")
-    :ok = DHCPServer.stop(state.server)
+    :ok = DHCPServer.stop(state.iface)
     {:ok, server} = DHCPServer.start_link(state.iface, config)
 
     {:reply, :ok, %{state | server: server}}
