@@ -1,6 +1,6 @@
-import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
+import { Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
 
-const BASE_URL = "http://localhost:4000/";
+const BASE_URL = "http://192.168.122.5:4000/";
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
   console.log('creating subscription', subscriptionJson);
@@ -66,5 +66,25 @@ export async function getDevices(): Promise<Device[]> {
   } catch (error) {
     console.error("failed to fetch devices: ", error);
     return []
+  }
+}
+
+export async function setDhcpSettings(dhcpSettings: DhcpSettings) {
+  console.log('set DHCP settings', dhcpSettings);
+  console.log(JSON.stringify(dhcpSettings));
+  try {
+    const response = await fetch(BASE_URL + 'dhcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dhcpSettings)
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to set DHCP settings", error);
+    throw error;
   }
 }
