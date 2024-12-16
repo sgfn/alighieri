@@ -1,6 +1,7 @@
-import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, simpleSubscriptionToJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
+import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
 
-const BASE_URL = "http://localhost:4000/";
+const hostname = window.location.hostname;
+const BASE_URL = `http://${hostname}:4000/`;
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
   console.log('creating subscription', subscriptionJson);
@@ -45,7 +46,7 @@ export async function getSubscriptions(): Promise<Subscription[]> {
   try {
     const response = await fetch(BASE_URL + 'subscriptions');
     if (!response.ok) {
-      throw new Error('HTTP error! Status: ${response.status}');
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const jsonData = await response.json();
     return jsonData.subscriptions.map((subscription: SubscriptionJson) => subscriptionFromJson(subscription));
