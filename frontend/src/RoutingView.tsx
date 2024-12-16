@@ -1,11 +1,10 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { Box, Center, Text, Tooltip, useToast, UseToastOptions } from "@chakra-ui/react";
+import { Box, Center, Text, Tooltip, useToast } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
 import Frame from "./Frame";
-import * as toaster from "./toaster";
 import { Device, SimpleSubscriptionJson, Subscription } from "./types";
 
 
@@ -42,50 +41,65 @@ export default function RoutingView() {
     }, [setEdges]);
 
 
+    const getEdgeId = ({ source, sourceHandle, target, targetHandle }: any): string =>
+        `xy-edge__${source}${sourceHandle || ''}-${target}${targetHandle || ''}`;
+
     const onConnect = useCallback(
         async (params: any) => {
+            setEdges((eds) => addEdge(params, eds));
+            console.log(`edges`);
+            console.log(edges);
+            let subscriptionPromise = createSubscription({
+                receiver: {
+                    device_name: params.target,
+                    channel_name: params.targetHandle.slice(3)
+                },
+                transmitter: {
+                    device_name: params.source,
+                    channel_name: params.sourceHandle.slice(3)
+                }
+            });
+            toast.promise(subscriptionPromise, {
+                success: { title: 'routing', description: 'created subscription', position: 'top' },
+                error: { title: 'routing', description: 'failed to create subscription', position: 'top' },
+                loading: { title: 'routing', description: 'creating subscription', position: 'top' }
+            });
+
             try {
-                let response = await createSubscription({
-                    receiver: {
-                        device_name: params.target,
-                        channel_name: params.targetHandle.slice(3)
-                    },
-                    transmitter: {
-                        device_name: params.source,
-                        channel_name: params.sourceHandle.slice(3)
-                    }
-                });
-                setEdges((eds) => addEdge(params, eds));
-                toast(toastSuccess(`Subscription created successfully: ${response}`));
+                await subscriptionPromise;
             } catch (error) {
-                toast(toastError(`Couldn't create subscription: ${error}`));
+                let edgeId = getEdgeId(params);
+                setEdges((eds) => eds.filter((e) => e.id !== edgeId))
             }
         },
-        [setEdges, toast],
+        [setEdges, edges, toast],
     );
 
     async function customOnEdgesChange(changes: any) {
-        console.log(edges);
-        console.log(changes);
-        onEdgesChange(changes)
         const simpleSubscriptionJson = getSimpleSubscriptionJson(edges, changes[0].id);
         if (changes[0].type === 'remove') {
             if (simpleSubscriptionJson === null) {
                 console.log('subscriptions does not exist');
                 return;
             }
+            let deleteSubscriptionPromise = deleteSubscription(simpleSubscriptionJson);
+            toast.promise(deleteSubscriptionPromise, {
+                success: { title: 'routing', description: 'removed subscription', position: 'top' },
+                error: { title: 'routing', description: 'failed to remove subscription', position: 'top' },
+                loading: { title: 'routing', description: 'removing subscription', position: 'top' }
+            });
             try {
-                let response = await deleteSubscription(simpleSubscriptionJson);
-                toast(toastSuccess(`Subscription deleted successfully: ${response}`));
+                await deleteSubscriptionPromise;
             } catch (error) {
-                toast(toastError(`Couldn't delete subscription: ${error}`));
+                console.log(`couldn't delete edge due to following error: ${error}`);
             }
         }
+        onEdgesChange(changes)
     }
 
     return (
         <Frame>
-            <Box w='100%' h='100%'>
+            <Box w='778px' h='670px' >
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -202,16 +216,3 @@ function getSimpleSubscriptionJson(edges: Edge[], edgeId: string): SimpleSubscri
         })
 }
 
-function toastSuccess(message: string): UseToastOptions {
-    return toaster.toastSuccessParams({
-        title: 'routing success',
-        message: message
-    })
-}
-
-function toastError(message: string): UseToastOptions {
-    return toaster.toastErrorParams({
-        title: 'routing error',
-        message: message
-    })
-}

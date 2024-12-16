@@ -1,27 +1,18 @@
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from "@chakra-ui/icons";
 import { Flex, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { getDevices } from "./backendController";
 import DeviceDetails from "./DeviceDetails";
-import { Channels, Device, deviceFromJson, DeviceJson } from "./types";
+import { Channels, Device } from "./types";
 
-const BASE_URL = `http://${window.location.hostname}:4000/`;
 
 export default function DeviceList() {
     const [devices, setDevices] = useState<Device[]>([])
 
     useEffect(() => {
         const fetchDevices = async () => {
-            try {
-                const response = await fetch(BASE_URL + 'devices');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const jsonData = await response.json();
-                const devices: Device[] = jsonData.devices.map((json: DeviceJson) => deviceFromJson(json));
-                setDevices(devices);
-            } catch (error) {
-                console.error("Failed to fetch devices:", error);
-            }
+            let fetchedDevices = await getDevices();
+            setDevices(fetchedDevices);
         };
 
         fetchDevices();
@@ -59,9 +50,9 @@ function DeviceRow(device: Device) {
             <Td>
                 <Flex alignItems='center'>
                     <Text>{device.ipv4}</Text>
-                    <Spacer/>
+                    <Spacer />
                     {/* <Button variant='outline' borderWidth='2px' borderColor='gray.600' height='30px'>Details</Button> */}
-                    <DeviceDetails {...device}/>
+                    <DeviceDetails {...device} />
                 </Flex>
             </Td>
         </Tr>
@@ -76,11 +67,11 @@ export enum DeviceStatus {
 
 export function StatusToIcon(status: DeviceStatus) {
     if (status === DeviceStatus.Ok) {
-        return(<CheckCircleIcon color='green.400' />)
+        return (<CheckCircleIcon color='green.400' />)
     } else if (status === DeviceStatus.Error) {
-        return(<WarningIcon color='red.400'/>)
+        return (<WarningIcon color='red.400' />)
     } else {
-        return(<QuestionIcon color='blue.400'/>)
+        return (<QuestionIcon color='blue.400' />)
     }
 }
 

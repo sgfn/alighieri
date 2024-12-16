@@ -1,14 +1,15 @@
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
 import DeviceList from "./DeviceList";
 import Frame from "./Frame";
+import Settings from "./Settings";
 
 export default function InfoView() {
     return (
         <Frame>
             <Tabs>
                 <TabList textColor='gray.900'>
-                    <Tab> Devices list </Tab>
-                    <Tab> Settings </Tab>
+                    <Tab> devices list </Tab>
+                    <Tab> settings </Tab>
                 </TabList>
 
                 <TabPanels>
@@ -16,7 +17,7 @@ export default function InfoView() {
                         <DeviceList />
                     </TabPanel>
                     <TabPanel>
-                        dhcp settings placeholder
+                        <Settings />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
