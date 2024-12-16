@@ -8,7 +8,7 @@ export default function InfoView() {
             <Tabs>
                 <TabList textColor='gray.900'>
                     <Tab> Devices list </Tab>
-                    <Tab> DHCP settings </Tab>
+                    <Tab> Settings </Tab>
                 </TabList>
 
                 <TabPanels>

@@ -5,7 +5,7 @@ defmodule Alighieri.Controller.Client do
 
   require Logger
 
-  alias Alighieri.Controller.{DHCP, Netaudio}
+  alias Alighieri.Controller.{DHCP, Identifier, Netaudio}
 
   @behaviour Alighieri.Client
 

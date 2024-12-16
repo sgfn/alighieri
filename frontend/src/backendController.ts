@@ -1,6 +1,6 @@
 import { Device, deviceFromJson, DeviceJson, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
 
-const BASE_URL = "http://localhost:4000/";
+const BASE_URL = `http://${window.location.hostname}:4000/`;
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
   console.log('creating subscription', subscriptionJson);

@@ -24,7 +24,7 @@ export default function Homepage() {
                     <HStack>
                         <Text color='gray.50' fontSize='6xl'>alighieri</Text>
                         <Spacer />
-                        <Button mr='8' onClick={() => setLoggedIn(false)}>log out</Button>
+                        {loggedIn ? <Button mr='8' onClick={() => setLoggedIn(false)}>log out</Button> : null}
                     </HStack>
                 </GridItem>
                 <GridItem area='content'>

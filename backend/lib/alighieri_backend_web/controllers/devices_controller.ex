@@ -63,4 +63,18 @@ defmodule Alighieri.BackendWeb.DevicesController do
         {:error, :service_unavailable, "Unable to configure device"}
     end
   end
+
+  def identify(conn, %{"device_id" => device_id} = params) do
+    with {id, _rem} <- Integer.parse(device_id),
+         {:ok, device} <- DeviceService.get_device(id) do
+      DeviceService.identify(id)
+      send_resp(conn, :no_content, "")
+    else
+      :error ->
+        {:error, :bad_request, "Invalid device ID: expected integer, got `#{device_id}`"}
+
+      {:error, :device_not_found} ->
+        {:error, :not_found, "Device `#{device_id}` does not exist"}
+    end
+  end
 end

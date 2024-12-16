@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import DeviceDetails from "./DeviceDetails";
 import { Channels, Device, deviceFromJson, DeviceJson } from "./types";
 
-const BASE_URL = "http://localhost:4000/";
+const BASE_URL = `http://${window.location.hostname}:4000/`;
 
 export default function DeviceList() {
     const [devices, setDevices] = useState<Device[]>([])
