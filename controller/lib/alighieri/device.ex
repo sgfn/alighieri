@@ -39,7 +39,7 @@ defmodule Alighieri.Device do
         "channels" => channels,
         "ipv4" => ipv4,
         "mac_address" => mac_address,
-        "sample_rate" => sample_rate,
+        # "sample_rate" => sample_rate,
         "subscriptions" => subscriptions
       } ->
         %__MODULE__{
@@ -47,7 +47,8 @@ defmodule Alighieri.Device do
           channels: Channels.from_json!(channels),
           ipv4: ipv4,
           mac_address: mac_address,
-          sample_rate: sample_rate,
+          # XXX handle unknown sample rate
+          sample_rate: Map.get(data, "sample_rate", 48_000),
           subscriptions: Enum.map(subscriptions, &Subscription.from_json!/1)
         }
 

@@ -8,6 +8,11 @@ defmodule Alighieri.Controller.Application do
   @epmd_timeout_ms 5_000
   @epmd_pgrep_interval_ms 500
 
+  @default_dhcp_config [
+    netmask: "255.255.255.0",
+    range: {"10.0.0.100", "10.0.0.199"},
+  ]
+
   @impl true
   def start(_type, _args) do
     Logger.info("Starting Alighieri controller")
@@ -15,8 +20,12 @@ defmodule Alighieri.Controller.Application do
     :ok = setup_distribution()
     Alighieri.Controller.Netaudio.version!() |> Logger.info()
 
+    dhcp_config =
+      @default_dhcp_config
+      |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :dhcp_iface))
+
     children = [
-      # {Registry, keys: :unique, name: Alighieri.Controller.Registry},
+      {Alighieri.Controller.DHCP, dhcp_config}
     ]
 
     opts = [strategy: :one_for_one, name: Alighieri.Controller.Supervisor]
