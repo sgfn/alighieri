@@ -11,8 +11,8 @@ export default function DeviceList() {
 
     useEffect(() => {
         const fetchDevices = async () => {
-            let devices = await getDevices();
-            setDevices(devices);
+            let fetchedDevices = await getDevices();
+            setDevices(fetchedDevices);
         };
 
         fetchDevices();
