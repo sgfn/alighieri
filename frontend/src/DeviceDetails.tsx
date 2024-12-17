@@ -1,10 +1,12 @@
-import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
+import { QuestionIcon } from "@chakra-ui/icons";
+import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
+import { identifyChannel } from "./backendController";
 import { Device } from "./types";
-
-// interface DeviceDetailsProps {}
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
+    const toast = useToast();
+
     return (
         <>
             <Button onClick={onOpen} variant='outline' borderWidth='2px' borderColor='gray.600' height='30px'>details</Button>
@@ -40,13 +42,13 @@ export default function DeviceDetails(device: Device) {
                                     <ListItem key={device.id + '/inputs'}>
                                         <Text>inputs:</Text>
                                         <UnorderedList>
-                                            {device.channels.transmitters.map((channelName,) => channelRow({ channelName: channelName, deviceId: device.id }))}
+                                            {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id }))}
                                         </UnorderedList>
                                     </ListItem>
                                     <ListItem key={device.id + '/outputs'}>
                                         <Text>outputs:</Text>
                                         <UnorderedList>
-                                            {device.channels.receivers.map((channelName) => channelRow({ channelName: channelName, deviceId: device.id }))}
+                                            {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast }))}
                                         </UnorderedList>
                                     </ListItem>
                                 </UnorderedList>
@@ -55,7 +57,6 @@ export default function DeviceDetails(device: Device) {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }}>find device</Button>
                         <Spacer />
                         <Button onClick={onClose} bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }}>close</Button>
                     </ModalFooter>
@@ -63,14 +64,47 @@ export default function DeviceDetails(device: Device) {
             </Modal>
         </>
     )
+    // {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}
 }
 
-interface channelRowProps {
+interface outputChannelRowProps {
+    channelName: string,
+    deviceName: string,
+    deviceId: number
+    toast: any
+}
+
+function outputChannelRow({ channelName, deviceName, deviceId, toast }: outputChannelRowProps) {
+    const handleIdentify = () => {
+        let identifyPromise = identifyChannel({ channelName: channelName, deviceName: deviceName });
+        toast.promise(identifyPromise, {
+            success: { title: 'identify', description: 'done identifying', position: 'top' },
+            error: { title: 'identify', description: 'error while identifying', position: 'top' },
+            loading: { title: 'identify', description: 'playing sound', position: 'top' }
+        });
+    }
+
+    return (
+        <ListItem key={deviceId + '/inputs/' + channelName}>
+            <Flex alignItems='center'>
+                <Text>{channelName}</Text>
+                <Spacer width='2' />
+                <Tooltip label='identify device'>
+                    <QuestionIcon onClick={handleIdentify} />
+                </Tooltip>
+                {/* <Spacer width='2'/>
+                {StatusToIcon(DeviceStatus.Ok)} */}
+            </Flex>
+        </ListItem>
+    )
+}
+
+interface inputChannelRowProps {
     channelName: string,
     deviceId: number
 }
 
-function channelRow({ channelName, deviceId }: channelRowProps) {
+function inputChannelRow({ channelName, deviceId }: inputChannelRowProps) {
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
             <Flex alignItems='center'>
