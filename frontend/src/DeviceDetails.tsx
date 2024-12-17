@@ -1,12 +1,11 @@
 import { QuestionIcon } from "@chakra-ui/icons";
-import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
 import { identifyChannel } from "./backendController";
 import { Device } from "./types";
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
-
-    const canBeFound = device.channels.receivers.length > 0;
+    const toast = useToast();
 
     return (
         <>
@@ -49,7 +48,7 @@ export default function DeviceDetails(device: Device) {
                                     <ListItem key={device.id + '/outputs'}>
                                         <Text>outputs:</Text>
                                         <UnorderedList>
-                                            {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id }))}
+                                            {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast }))}
                                         </UnorderedList>
                                     </ListItem>
                                 </UnorderedList>
@@ -72,15 +71,27 @@ interface outputChannelRowProps {
     channelName: string,
     deviceName: string,
     deviceId: number
+    toast: any
 }
 
-function outputChannelRow({ channelName, deviceName, deviceId }: outputChannelRowProps) {
+function outputChannelRow({ channelName, deviceName, deviceId, toast }: outputChannelRowProps) {
+    const handleIdentify = () => {
+        let identifyPromise = identifyChannel({ channelName: channelName, deviceName: deviceName });
+        toast.promise(identifyPromise, {
+            success: { title: 'identify', description: 'done identifying', position: 'top' },
+            error: { title: 'identify', description: 'error while identifying', position: 'top' },
+            loading: { title: 'identify', description: 'playing sound', position: 'top' }
+        });
+    }
+
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
             <Flex alignItems='center'>
                 <Text>{channelName}</Text>
                 <Spacer width='2' />
-                <QuestionIcon onClick={() => identifyChannel({ channelName: channelName, deviceName: deviceName })} />
+                <Tooltip label='identify device'>
+                    <QuestionIcon onClick={handleIdentify} />
+                </Tooltip>
                 {/* <Spacer width='2'/>
                 {StatusToIcon(DeviceStatus.Ok)} */}
             </Flex>
