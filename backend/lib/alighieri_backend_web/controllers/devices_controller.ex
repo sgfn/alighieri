@@ -74,10 +74,7 @@ defmodule Alighieri.BackendWeb.DevicesController do
       send_resp(conn, :no_content, "")
     else
       :error ->
-        {:error, :bad_request, "Invalid device ID: expected integer, got `#{device_id}`"}
-
-      {:error, :device_not_found} ->
-        {:error, :not_found, "Device `#{device_id}` does not exist"}
+        {:error, :bad_request, "Invalid request structure"}
     end
   end
 end
