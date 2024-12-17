@@ -1,6 +1,6 @@
 import { Box, Button, Flex, Input, Text, useToast, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import { setDhcpSettings } from "./backendController";
+import { getConfig, sendConfig, setDhcpSettings } from "./backendController";
 import { DhcpSettings } from "./types";
 
 
@@ -24,6 +24,46 @@ export default function Settings() {
             loading: { title: 'dhcp settings', description: 'updating dhcp settings', position: 'top' },
         })
     }
+
+    const handleExport = async () => {
+        let devices = await getConfig();
+        console.log(devices);
+        const a = document.createElement('a');
+        a.download = 'dante_config.json';
+        const blob = new Blob([JSON.stringify(devices, null, 2)], {
+            type: "application/json",
+        });
+        a.href = URL.createObjectURL(blob);
+        document.body.appendChild(a);
+        a.click();
+    };
+    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event: ProgressEvent<FileReader>) => {
+                const text = event.target?.result;
+                if (typeof text === 'string') {
+                    try {
+                        // Parse the JSON text into an object
+                        const jsonData = JSON.parse(text);
+                        console.log(jsonData); // Log the parsed JSON object
+                        sendConfig(jsonData);
+                    } catch (error) {
+                        // Handle JSON parsing errors
+                        console.error('Error parsing JSON:', error);
+                    }
+                }
+            };
+
+            reader.onerror = (error) => {
+                console.error('Error reading file:', error);
+            };
+
+            reader.readAsText(file);
+        }
+    };
     return (
         <Box>
             <Text fontWeight='semibold'>IP address range configuration</Text>
@@ -42,11 +82,15 @@ export default function Settings() {
             <Button ml='10px' bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }} onClick={handleSubmit}>update</Button>
             <VStack align='start' mt='24px' pt='16px' borderTop='1px solid' borderColor='gray.300'>
                 <Text fontWeight='semibold'>system configuration</Text>
-                <Button w='192px' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }}>import from file</Button>
-                <Button w='192px' bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }}>export to file</Button>
+                <Input type='file' placeholder='import from file' w='192px' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onChange={handleImport} />
+                <Button w='192px' bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }} onClick={handleExport}>export to file</Button>
             </VStack>
         </Box>
     )
+    // <label>
+    //     <input type='file' style="display: none;" onChange={handleImport} >test</input>
+    //     <Button w='192px' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }}>import from file</ Button>
+    // </label>
 }
 
 interface InputFieldProps {

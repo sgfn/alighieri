@@ -1,7 +1,8 @@
 import { Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
 
 const hostname = window.location.hostname;
-const BASE_URL = `http://${hostname}:4000/`;
+const BASE_URL = `http://192.168.32.5:4000/`;
+// const BASE_URL = `http://${hostname}:4000/`;
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
   console.log('creating subscription', subscriptionJson);
@@ -86,6 +87,42 @@ export async function setDhcpSettings(dhcpSettings: DhcpSettings) {
     }
   } catch (error) {
     console.error("Failed to set DHCP settings", error);
+    throw error;
+  }
+}
+
+
+export async function getConfig() {
+  try {
+    const response = await fetch(BASE_URL + 'config');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const jsonData = await response.json();
+    console.log(jsonData);
+    return jsonData;
+  } catch (error) {
+    console.error("failed to fetch subscriptions: ", error);
+    return []
+  }
+}
+
+export async function sendConfig(config: any) {
+  console.log('set config', config);
+  console.log(JSON.stringify(config));
+  try {
+    const response = await fetch(BASE_URL + 'config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config)
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to set config", error);
     throw error;
   }
 }
