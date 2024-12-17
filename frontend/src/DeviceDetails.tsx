@@ -1,5 +1,6 @@
+import { QuestionIcon } from "@chakra-ui/icons";
 import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
-import { identifyDevice } from "./backendController";
+import { identifyChannel } from "./backendController";
 import { Device } from "./types";
 
 export default function DeviceDetails(device: Device) {
@@ -42,13 +43,13 @@ export default function DeviceDetails(device: Device) {
                                     <ListItem key={device.id + '/inputs'}>
                                         <Text>inputs:</Text>
                                         <UnorderedList>
-                                            {device.channels.transmitters.map((channelName,) => channelRow({ channelName: channelName, deviceId: device.id }))}
+                                            {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id }))}
                                         </UnorderedList>
                                     </ListItem>
                                     <ListItem key={device.id + '/outputs'}>
                                         <Text>outputs:</Text>
                                         <UnorderedList>
-                                            {device.channels.receivers.map((channelName) => channelRow({ channelName: channelName, deviceId: device.id }))}
+                                            {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id }))}
                                         </UnorderedList>
                                     </ListItem>
                                 </UnorderedList>
@@ -57,7 +58,6 @@ export default function DeviceDetails(device: Device) {
                     </ModalBody>
 
                     <ModalFooter>
-                        {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}
                         <Spacer />
                         <Button onClick={onClose} bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }}>close</Button>
                     </ModalFooter>
@@ -65,14 +65,35 @@ export default function DeviceDetails(device: Device) {
             </Modal>
         </>
     )
+    // {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}
 }
 
-interface channelRowProps {
+interface outputChannelRowProps {
+    channelName: string,
+    deviceName: string,
+    deviceId: number
+}
+
+function outputChannelRow({ channelName, deviceName, deviceId }: outputChannelRowProps) {
+    return (
+        <ListItem key={deviceId + '/inputs/' + channelName}>
+            <Flex alignItems='center'>
+                <Text>{channelName}</Text>
+                <Spacer width='2' />
+                <QuestionIcon onClick={() => identifyChannel({ channelName: channelName, deviceName: deviceName })} />
+                {/* <Spacer width='2'/>
+                {StatusToIcon(DeviceStatus.Ok)} */}
+            </Flex>
+        </ListItem>
+    )
+}
+
+interface inputChannelRowProps {
     channelName: string,
     deviceId: number
 }
 
-function channelRow({ channelName, deviceId }: channelRowProps) {
+function inputChannelRow({ channelName, deviceId }: inputChannelRowProps) {
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
             <Flex alignItems='center'>

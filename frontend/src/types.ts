@@ -124,6 +124,13 @@ export function simpleSubscriptionToJson(simpleSubscription: SimpleSubscription)
     };
 }
 
+export function channelAddressToJson(channelAddress: ChannelAddress): ChannelAddressJson {
+    return {
+        device_name: channelAddress.deviceName,
+        channel_name: channelAddress.channelName,
+    }
+}
+
 export interface DhcpSettings {
     netmask: string,
     range_from: string,
