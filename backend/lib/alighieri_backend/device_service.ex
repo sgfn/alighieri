@@ -218,13 +218,15 @@ defmodule Alighieri.Backend.DeviceService do
     %{subs: subs} = Jason.decode!(config)
 
     {:reply, {:ok, current_subs}, state} = handle_call(:list_subscriptions, nil, state)
-    for sub <- current_subs do
+    state =
+      Enum.reduce(current_subs, state, fn sub, state ->
       {:reply, :ok, state} = handle_call({:unsubscribe, sub.receiver}, nil, state)
-    end
+    end)
 
-    for sub <- subs do
-      {:reply, :ok, state} = handle_call({:subscribe, sub}, nil, state)
-    end
+    state =
+      Enum.reduce(subs, state, fn sub, state ->
+        {:reply, :ok, state} = handle_call({:subscribe, sub}, nil, state)
+      end)
 
     {:reply, :ok, state}
   end
