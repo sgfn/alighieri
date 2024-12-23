@@ -1,6 +1,6 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { Box, Center, Text, Tooltip, useToast } from "@chakra-ui/react";
-import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
+import { addEdge, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, useEdgesState, useHandleConnections, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from "react";
 import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "./backendController";
@@ -159,9 +159,9 @@ function DanteNode({ data }: any) {
                     right += 1;
                     return (
                         <Tooltip label={transmitter}>
-                            <Handle type="source" position={Position.Right} key={device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ top: handleMargin + offset * right, width: '12px', height: '12px', borderColor: 'black' }} >
+                            <DanteHandle type="source" position={Position.Right} key={device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ top: handleMargin + offset * right, width: '12px', height: '12px', borderColor: 'black' }} >
                                 <ArrowForwardIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' pointerEvents='none' />
-                            </Handle>
+                            </DanteHandle>
                         </Tooltip>
                     )
                 })
@@ -171,9 +171,9 @@ function DanteNode({ data }: any) {
                     left += 1;
                     return (
                         <Tooltip label={receiver}>
-                            <Handle type="target" position={Position.Left} key={device.name + "/" + receiver} id={"rx_" + receiver} style={{ top: handleMargin + offset * left, backgroundColor: '#C53030', width: '12px', height: '12px', borderColor: 'black' }}>
+                            <DanteHandle type="target" position={Position.Left} key={device.name + "/" + receiver} id={"rx_" + receiver} style={{ top: handleMargin + offset * left, backgroundColor: '#C53030', width: '12px', height: '12px', borderColor: 'black' }}>
                                 <ArrowForwardIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' />
-                            </Handle>
+                            </DanteHandle>
                         </Tooltip>
                     )
                 })
@@ -181,6 +181,20 @@ function DanteNode({ data }: any) {
         </>
     );
 }
+
+function DanteHandle(props: any) {
+    const connections = useHandleConnections({
+        type: props.type,
+        id: props.id,
+    });
+
+    return (
+        <Handle
+            {...props}
+            isConnectable={connections.length < 1}
+        />
+    );
+};
 
 function getSimpleSubscriptionJson(edges: Edge[], edgeId: string): SimpleSubscriptionJson | null {
     if (edges === undefined) {
