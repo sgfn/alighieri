@@ -1,7 +1,6 @@
 import { Box, Button, Text, VStack } from "@chakra-ui/react";
 import { DHCPSettings } from "./DHCPSettings";
 
-
 export default function Settings() {
     return (
         <Box>
