@@ -1,4 +1,4 @@
-import { Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
+import { ChannelAddress, channelAddressToJson, Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
 
 const hostname = window.location.hostname;
 const BASE_URL = `http://${hostname}:4000/`;
@@ -90,7 +90,6 @@ export async function setDhcpSettings(dhcpSettings: DhcpSettings) {
   }
 }
 
-
 export async function getConfig() {
   try {
     const response = await fetch(BASE_URL + 'config');
@@ -122,6 +121,25 @@ export async function sendConfig(config: any) {
     }
   } catch (error) {
     console.error("Failed to set config", error);
+    throw error;
+  }
+}
+
+export async function identifyChannel(channelAddress: ChannelAddress) {
+  console.log(`identify channel ${channelAddress}`);
+  try {
+    const response = await fetch(BASE_URL + 'identify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(channelAddressToJson(channelAddress))
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to identify channel", error);
     throw error;
   }
 }
