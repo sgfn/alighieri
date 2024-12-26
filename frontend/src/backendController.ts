@@ -90,6 +90,41 @@ export async function setDhcpSettings(dhcpSettings: DhcpSettings) {
   }
 }
 
+export async function getConfig() {
+  try {
+    const response = await fetch(BASE_URL + 'config');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const jsonData = await response.json();
+    console.log(jsonData);
+    return jsonData;
+  } catch (error) {
+    console.error("failed to fetch subscriptions: ", error);
+    throw error;
+  }
+}
+
+export async function sendConfig(config: any) {
+  console.log('set config', config);
+  console.log(JSON.stringify(config));
+  try {
+    const response = await fetch(BASE_URL + 'config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config)
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to set config", error);
+    throw error;
+  }
+}
+
 export async function identifyChannel(channelAddress: ChannelAddress) {
   console.log(`identify channel ${channelAddress}`);
   try {
