@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/alighieri/static/css/main.3c611200.css",
-    "main.js": "/alighieri/static/js/main.fd24d80c.js",
+    "main.js": "/alighieri/static/js/main.a27cce7f.js",
     "static/js/453.78505a46.chunk.js": "/alighieri/static/js/453.78505a46.chunk.js",
     "index.html": "/alighieri/index.html",
     "main.3c611200.css.map": "/alighieri/static/css/main.3c611200.css.map",
-    "main.fd24d80c.js.map": "/alighieri/static/js/main.fd24d80c.js.map",
+    "main.a27cce7f.js.map": "/alighieri/static/js/main.a27cce7f.js.map",
     "453.78505a46.chunk.js.map": "/alighieri/static/js/453.78505a46.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3c611200.css",
-    "static/js/main.fd24d80c.js"
+    "static/js/main.a27cce7f.js"
   ]
 }
