@@ -1,11 +1,9 @@
-import { Box, Button, Grid, GridItem, HStack, Spacer, Text } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Grid, GridItem, HStack, Text } from "@chakra-ui/react";
 import MainPage from "./MainPage";
 
 export default function Homepage() {
-    // type NewType = boolean;
 
-    // const [loggedIn, setLoggedIn] = useState<NewType>(false);
+    //const [loggedIn, setLoggedIn] = useState<boolean>(false);
 
     return (
         <Box bg='gray.300'>
@@ -22,7 +20,6 @@ export default function Homepage() {
                 <GridItem bg='gray.600' area='header' textAlign='left' pl='12' lineHeight='100px'>
                     <HStack>
                         <Text color='gray.50' fontSize='6xl'>alighieri</Text>
-                        <Spacer />
                     </HStack>
                 </GridItem>
                 <GridItem area='content'>
@@ -31,6 +28,7 @@ export default function Homepage() {
             </Grid>
         </Box>
     )
-    // <Button mr='8' onClick={() => setLoggedIn(false)}>log out</Button>
-    // {loggedIn ? <MainPage /> : <AuthPage setLoggedIn={setLoggedIn} />}
+    //<Spacer />
+    //<Button mr='8' onClick={() => setLoggedIn(false)}>log out</Button>
+    //{ loggedIn ? <MainPage /> : <AuthPage setLoggedIn={setLoggedIn} /> }
 }

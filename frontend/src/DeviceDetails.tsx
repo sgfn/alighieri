@@ -60,8 +60,8 @@ export default function DeviceDetails(device: Device) {
                         <Spacer />
                         <Button onClick={onClose} bg='gray.300' color='gray.900' _hover={{ bg: 'gray.400', color: 'gray.800' }}>close</Button>
                     </ModalFooter>
-                </ModalContent>
-            </Modal>
+                </ModalContent >
+            </Modal >
         </>
     )
     // {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}

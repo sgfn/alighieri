@@ -108,4 +108,3 @@ export async function identifyChannel(channelAddress: ChannelAddress) {
     throw error;
   }
 }
-
