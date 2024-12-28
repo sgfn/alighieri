@@ -12,8 +12,8 @@ defmodule Alighieri.Backend.DeviceService.State do
           device_mac_to_id: %{String.t() => device_id()},
           device_name_to_id: %{String.t() => device_id()},
           visible_devices: MapSet.t(device_id()),
-          tx_subscriptions: %{ChannelAddress.t() => [ChannelAddress.t()]},
-          # %{id => [subs]
+          # %{device_name => [subs]}
+          tx_subscriptions: %{String.t() => [Subscription.t()]},
           next_device_id: device_id(),
           last_fetch: integer()
         }
@@ -35,7 +35,8 @@ defmodule Alighieri.Backend.DeviceService.State do
   def devices(state, only_visible? \\ true)
 
   def devices(state, true) do
-    Enum.filter(state.devices, fn {id, _dt} -> MapSet.member?(state.visible_devices, id) end) |> Map.new()
+    Enum.filter(state.devices, fn {id, _dt} -> MapSet.member?(state.visible_devices, id) end)
+    |> Map.new()
   end
 
   def devices(state, false), do: state.devices

@@ -27,10 +27,10 @@ defmodule Alighieri.Subscription do
         "rx_channel" => rx_channel,
         "rx_device" => rx_device,
         "tx_channel" => tx_channel,
-        "tx_device" => tx_device,
-        "status_text" => status
+        "tx_device" => tx_device
+        # "status_text" => status
       } ->
-        %__MODULE__{
+        sub = %__MODULE__{
           receiver: %ChannelAddress{
             device_name: rx_device,
             channel_name: rx_channel
@@ -38,9 +38,14 @@ defmodule Alighieri.Subscription do
           transmitter: %ChannelAddress{
             device_name: tx_device,
             channel_name: tx_channel
-          },
-          status: status
+          }
         }
+
+        maybe_status = data["status_text"] || data["status"]
+
+        if not is_nil(maybe_status),
+          do: %__MODULE__{sub | status: maybe_status},
+          else: sub
 
       other ->
         raise "Invalid subscription JSON structure: #{inspect(other)}"

@@ -83,7 +83,15 @@ defmodule Alighieri.Backend.DeviceService do
   @impl true
   def handle_call(:list_devices, _from, state) do
     # This lists visible devices only
-    {:reply, {:ok, State.devices(state)}, state}
+    devices =
+      state
+      |> State.devices()
+      |> Map.new(fn {id, device} ->
+        tx_subs = Map.get(state.tx_subscriptions, device.name, [])
+        {id, Map.update!(device, :subscriptions, &(&1 ++ tx_subs))}
+      end)
+
+    {:reply, {:ok, devices}, state}
   end
 
   @impl true
@@ -179,17 +187,19 @@ defmodule Alighieri.Backend.DeviceService do
             {:reply, :ok, state} = handle_call({:unsubscribe, subscription.receiver}, nil, state)
 
             {
-            fn state ->
-              {:reply, :ok, state} = handle_call({:subscribe, subscription}, nil, state)
+              fn state ->
+                {:reply, :ok, state} = handle_call({:subscribe, subscription}, nil, state)
+                state
+              end,
               state
-            end,
-              state}
+            }
         end
 
       tmp_sub = %Subscription{
         receiver: caddr,
         transmitter: %ChannelAddress{device_name: @my_device, channel_name: @my_channel}
       }
+
       {:reply, :ok, state} = handle_call({:subscribe, tmp_sub}, nil, state)
 
       state.client.play_sound()
@@ -198,7 +208,7 @@ defmodule Alighieri.Backend.DeviceService do
 
       state = post_identify_hook.(state)
 
-    {:reply, :ok, state}
+      {:reply, :ok, state}
     else
       _other -> {:reply, :error, state}
     end
@@ -215,17 +225,34 @@ defmodule Alighieri.Backend.DeviceService do
 
   @impl true
   def handle_call({:apply_config, config}, _from, state) do
-    %{subs: subs} = Jason.decode!(config)
+    %{"subs" => subs} = Jason.decode!(config)
+
+    subs =
+      Enum.map(subs, fn aasub ->
+        %Subscription{
+          receiver: %ChannelAddress{
+            channel_name: aasub["receiver"]["channel_name"],
+            device_name: aasub["receiver"]["device_name"]
+          },
+          transmitter: %ChannelAddress{
+            channel_name: aasub["transmitter"]["channel_name"],
+            device_name: aasub["transmitter"]["device_name"]
+          }
+        }
+      end)
 
     {:reply, {:ok, current_subs}, state} = handle_call(:list_subscriptions, nil, state)
+
     state =
       Enum.reduce(current_subs, state, fn sub, state ->
-      {:reply, :ok, state} = handle_call({:unsubscribe, sub.receiver}, nil, state)
-    end)
+        {:reply, :ok, state} = handle_call({:unsubscribe, sub.receiver}, nil, state)
+        state
+      end)
 
     state =
       Enum.reduce(subs, state, fn sub, state ->
         {:reply, :ok, state} = handle_call({:subscribe, sub}, nil, state)
+        state
       end)
 
     {:reply, :ok, state}
@@ -253,12 +280,12 @@ defmodule Alighieri.Backend.DeviceService do
         {MapSet.put(visible_devices, id), state}
       end)
 
-    tx_subs = Enum.reduce(state.devices, %{}, fn {_id, dev}, tx_subs ->
-      Enum.reduce(dev.subscriptions, tx_subs, fn sub, map ->
-        # TODO nie jest to lista xd
-        Map.put(map, sub.transmitter, sub.receiver)
+    tx_subs =
+      Enum.reduce(state.devices, %{}, fn {_id, dev}, tx_subs ->
+        Enum.reduce(dev.subscriptions, tx_subs, fn sub, map ->
+          Map.update(map, sub.transmitter.device_name, [sub], &[sub | &1])
+        end)
       end)
-    end)
 
     state =
       state
