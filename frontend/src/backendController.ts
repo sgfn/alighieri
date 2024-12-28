@@ -97,7 +97,6 @@ export async function getConfig() {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const jsonData = await response.json();
-    console.log(jsonData);
     return jsonData;
   } catch (error) {
     console.error("failed to fetch subscriptions: ", error);
