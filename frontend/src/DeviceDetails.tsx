@@ -1,5 +1,6 @@
-import { QuestionIcon } from "@chakra-ui/icons";
-import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
+import { ArrowBackIcon, ArrowForwardIcon, ArrowLeftIcon, ArrowRightIcon, QuestionIcon } from "@chakra-ui/icons";
+import { Box, Button, Divider, Flex, HStack, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
+import { channel } from "diagnostics_channel";
 import { identifyChannel } from "./backendController";
 import { Device } from "./types";
 
@@ -39,18 +40,22 @@ export default function DeviceDetails(device: Device) {
                             <Box>
                                 <Text>channels:</Text>
                                 <UnorderedList pl='4'>
-                                    <ListItem key={device.id + '/inputs'}>
-                                        <Text>inputs:</Text>
-                                        <UnorderedList>
-                                            {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id }))}
-                                        </UnorderedList>
-                                    </ListItem>
-                                    <ListItem key={device.id + '/outputs'}>
-                                        <Text>outputs:</Text>
-                                        <UnorderedList>
-                                            {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast }))}
-                                        </UnorderedList>
-                                    </ListItem>
+                                    {device.channels.transmitters.length < 1 ? null :
+                                        <ListItem key={device.id + '/inputs'}>
+                                            <Text>inputs:</Text>
+                                            <UnorderedList>
+                                                {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id, subscription: findSubscription(device, channelName) }))}
+                                            </UnorderedList>
+                                        </ListItem>
+                                    }
+                                    {device.channels.receivers.length < 1 ? null :
+                                        <ListItem key={device.id + '/outputs'}>
+                                            <Text>outputs:</Text>
+                                            <UnorderedList>
+                                                {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast, subscription: findSubscription(device, channelName) }))}
+                                            </UnorderedList>
+                                        </ListItem>
+                                    }
                                 </UnorderedList>
                             </Box>
                         </VStack>
@@ -64,17 +69,17 @@ export default function DeviceDetails(device: Device) {
             </Modal >
         </>
     )
-    // {canBeFound && <Button variant='solid' bg='gray.600' color='gray.50' _hover={{ bg: 'gray.500', color: 'gray.100' }} onClick={() => identifyDevice(device.id)}>find device</Button>}
 }
 
 interface outputChannelRowProps {
     channelName: string,
     deviceName: string,
-    deviceId: number
-    toast: any
+    deviceId: number,
+    toast: any,
+    subscription: string | null
 }
 
-function outputChannelRow({ channelName, deviceName, deviceId, toast }: outputChannelRowProps) {
+function outputChannelRow({ channelName, deviceName, deviceId, toast, subscription }: outputChannelRowProps) {
     const handleIdentify = () => {
         let identifyPromise = identifyChannel({ channelName: channelName, deviceName: deviceName });
         toast.promise(identifyPromise, {
@@ -92,8 +97,8 @@ function outputChannelRow({ channelName, deviceName, deviceId, toast }: outputCh
                 <Tooltip label='identify device'>
                     <QuestionIcon onClick={handleIdentify} />
                 </Tooltip>
-                {/* <Spacer width='2'/>
-                {StatusToIcon(DeviceStatus.Ok)} */}
+                <Spacer width='2' />
+                {subscription !== null ? <HStack><ArrowBackIcon /> <Text>{subscription}</Text></HStack> : null}
             </Flex>
         </ListItem>
     )
@@ -101,17 +106,18 @@ function outputChannelRow({ channelName, deviceName, deviceId, toast }: outputCh
 
 interface inputChannelRowProps {
     channelName: string,
-    deviceId: number
+    deviceId: number,
+    subscription: string | null
 }
 
-function inputChannelRow({ channelName, deviceId }: inputChannelRowProps) {
+function inputChannelRow({ channelName, deviceId, subscription }: inputChannelRowProps) {
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
             <Flex alignItems='center'>
                 <Text>{channelName}</Text>
-                {/* <Spacer width='2'/>
-                {StatusToIcon(DeviceStatus.Ok)} */}
+                <Spacer width='2' />
             </Flex>
+            {subscription !== null ? <HStack><ArrowForwardIcon /> <Text>{subscription}</Text></HStack> : null}
         </ListItem>
     )
 }
@@ -146,4 +152,16 @@ function formatMacAddress(input: string): string {
 function formatWithSpaces(input: number): string {
     const cleanedInput = input.toString();
     return cleanedInput.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function findSubscription(device: Device, channel: string): string | null {
+    for (const subscription of device.subscriptions) {
+        if (subscription.receiver.deviceName == device.name && subscription.receiver.channelName == channel) {
+            return `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName}`;
+        }
+        if (subscription.transmitter.deviceName == device.name && subscription.transmitter.channelName == channel) {
+            return `${subscription.receiver.deviceName}/${subscription.receiver.channelName}`;
+        }
+    }
+    return null
 }
