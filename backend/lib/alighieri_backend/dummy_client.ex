@@ -8,7 +8,7 @@ defmodule Alighieri.Backend.DummyClient do
   @allowed_sample_rates [44_100, 48_000, 88_200, 96_000, 176_400, 192_000]
 
   use GenServer
-  alias Alighieri.{Channels, Device}
+  alias Alighieri.{ChannelAddress, Channels, Device, Subscription}
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -123,7 +123,18 @@ defmodule Alighieri.Backend.DummyClient do
         ipv4: "10.0.21.44",
         mac_address: "AA:BB:CC:DD:EE:06",
         sample_rate: 44_100,
-        subscriptions: []
+        subscriptions: [
+          %Subscription{
+            receiver: %ChannelAddress{
+              device_name: "GLOSNIK3",
+              channel_name: "CH1"
+            },
+            transmitter: %ChannelAddress{
+              device_name: "KOMPUTER2",
+              channel_name: "CH2"
+            }
+          }
+        ]
       }
     ]
 

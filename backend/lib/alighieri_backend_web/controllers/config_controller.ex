@@ -2,7 +2,6 @@ defmodule Alighieri.BackendWeb.ConfigController do
   use Alighieri.BackendWeb, :controller
 
   alias Alighieri.Backend.DeviceService
-  alias Alighieri.{ChannelAddress, Subscription}
 
   action_fallback Alighieri.BackendWeb.FallbackController
 

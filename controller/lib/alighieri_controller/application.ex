@@ -10,7 +10,7 @@ defmodule Alighieri.Controller.Application do
 
   @default_dhcp_config [
     netmask: "255.255.255.0",
-    range: {"10.0.0.100", "10.0.0.199"},
+    range: {"10.0.0.100", "10.0.0.199"}
   ]
 
   @impl true
