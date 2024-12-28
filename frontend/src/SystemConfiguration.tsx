@@ -9,21 +9,27 @@ export default function SystemConfiguration() {
 
   const handleExport = async () => {
     let getDevicesPromise = getConfig();
+    console.log("after getConfig");
     toast.promise(getDevicesPromise, {
       success: { title: 'export configuration', description: 'configuration downloaded from server', position: 'top' },
       error: { title: 'export configuration', description: 'error while downloading configuration from server', position: 'top' },
       loading: { title: 'export configuration', description: 'downloading configuraion from server', position: 'top' }
     });
-    let devices = await getDevicesPromise;
-    console.log(devices);
-    const a = document.createElement('a');
-    a.download = 'dante_config.json';
-    const blob = new Blob([JSON.stringify(devices, null, 2)], {
-      type: "application/json",
-    });
-    a.href = URL.createObjectURL(blob);
-    document.body.appendChild(a);
-    a.click();
+    console.log("after promise");
+    try {
+      let devices = await getDevicesPromise;
+      console.log("after await");
+      const a = document.createElement('a');
+      a.download = 'dante_config.json';
+      const blob = new Blob([JSON.stringify(devices, null, 2)], {
+        type: "application/json",
+      });
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a);
+      a.click();
+    } catch (e) {
+      console.error("couldn't fetch configuration");
+    }
   };
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('import');
