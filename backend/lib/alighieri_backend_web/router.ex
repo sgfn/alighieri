@@ -3,6 +3,7 @@ defmodule Alighieri.BackendWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :auth
   end
 
   scope "/", Alighieri.BackendWeb do
@@ -29,5 +30,11 @@ defmodule Alighieri.BackendWeb.Router do
     scope "/config" do
       resources("/", ConfigController, only: [:show, :create], singleton: true)
     end
+  end
+
+  defp auth(conn, _opts) do
+    username = Application.fetch_env!(:alighieri_backend, :username)
+    password = Application.fetch_env!(:alighieri_backend, :password)
+    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
   end
 end
