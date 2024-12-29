@@ -5,7 +5,7 @@ defmodule Alighieri.Controller.Client do
 
   require Logger
 
-  alias Alighieri.Controller.{DHCP, Identifier, Netaudio}
+  alias Alighieri.Controller.{Configurator, DHCP, Identifier, Netaudio}
 
   @behaviour Alighieri.Client
 
@@ -56,8 +56,10 @@ defmodule Alighieri.Controller.Client do
 
   @impl true
   def handle_call(:list_devices, _from, state) do
-    result = rpc_call(state.node, Netaudio, :list_devices!)
-    {:reply, result, state}
+    devices = rpc_call(state.node, Netaudio, :list_devices!)
+    devices = rpc_call(state.node, Configurator, :get_sample_rates, [devices])
+
+    {:reply, devices, state}
   end
 
   @impl true
