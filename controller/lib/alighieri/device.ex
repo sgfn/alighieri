@@ -15,7 +15,8 @@ defmodule Alighieri.Device do
           channels: Channels.t(),
           ipv4: String.t(),
           mac_address: String.t(),
-          sample_rate: pos_integer(),
+          sample_rate: pos_integer() | nil,
+          supported_sample_rates: [pos_integer()] | nil,
           subscriptions: [Subscription.t()]
         }
 
@@ -24,12 +25,11 @@ defmodule Alighieri.Device do
     :channels,
     :ipv4,
     :mac_address,
-    :sample_rate,
     :subscriptions
   ]
 
   @derive Jason.Encoder
-  defstruct @enforce_keys
+  defstruct @enforce_keys ++ [sample_rate: nil, supported_sample_rates: nil]
 
   @spec from_json!(map()) :: t() | no_return()
   def from_json!(data) do
@@ -39,17 +39,20 @@ defmodule Alighieri.Device do
         "channels" => channels,
         "ipv4" => ipv4,
         "mac_address" => mac_address,
-        # "sample_rate" => sample_rate,
         "subscriptions" => subscriptions
       } ->
-        %__MODULE__{
+        d = %__MODULE__{
           name: name,
           channels: Channels.from_json!(channels),
           ipv4: ipv4,
           mac_address: mac_address,
-          # XXX handle unknown sample rate
-          sample_rate: Map.get(data, "sample_rate", 48_000),
           subscriptions: Enum.map(subscriptions, &Subscription.from_json!/1)
+        }
+
+        %{
+          d
+          | sample_rate: data["sample_rate"],
+            supported_sample_rates: data["supported_sample_rates"]
         }
 
       other ->
