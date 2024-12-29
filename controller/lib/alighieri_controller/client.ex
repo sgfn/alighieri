@@ -56,10 +56,12 @@ defmodule Alighieri.Controller.Client do
 
   @impl true
   def handle_call(:list_devices, _from, state) do
-    devices = rpc_call(state.node, Netaudio, :list_devices!)
-    devices = rpc_call(state.node, Configurator, :get_sample_rates, [devices])
+    result =
+      with {:ok, devices} <- rpc_call(state.node, Netaudio, :list_devices!) do
+        rpc_call(state.node, Configurator, :get_sample_rates, [devices])
+      end
 
-    {:reply, devices, state}
+    {:reply, result, state}
   end
 
   @impl true

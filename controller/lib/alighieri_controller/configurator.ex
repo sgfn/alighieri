@@ -27,35 +27,40 @@ defmodule Alighieri.Controller.Configurator do
       :gen_udp.open(@config_listen_port, [
         :binary,
         active: true,
+        reuseaddr: true,
         add_membership: {@config_listen_mcast_group, ifaddr}
       ])
 
-    Enum.map(devices, fn device ->
-      {:ok, addr} = device.ipv4 |> String.to_charlist() |> :inet.getaddr(:inet)
-      :gen_udp.send(s, {addr, @config_send_port}, @config_sample_rate_msg <> <<0, 0, 0, 1>>)
+    res =
+      Enum.map(devices, fn device ->
+        {:ok, addr} = device.ipv4 |> String.to_charlist() |> :inet.getaddr(:inet)
+        :gen_udp.send(s, {addr, @config_send_port}, @config_sample_rate_msg <> <<0, 0, 0, 1>>)
 
-      msg =
-        receive do
-          {:udp, ^s, _addr, _port, msg} -> msg
-        end
+        msg =
+          receive do
+            {:udp, ^s, _addr, _port, msg} -> msg
+          end
 
-      sx = :binary.bin_to_list(msg) |> Enum.reverse() |> Enum.chunk_every(4)
+        sx = :binary.bin_to_list(msg) |> Enum.reverse() |> Enum.chunk_every(4)
 
-      sd =
-        Enum.map(sx, fn [d, c, b, a] ->
-          <<v::unsigned-integer-big-32>> = <<a, b, c, d>>
-          v
-        end)
+        sd =
+          Enum.map(sx, fn [d, c, b, a] ->
+            <<v::unsigned-integer-big-32>> = <<a, b, c, d>>
+            v
+          end)
 
-      alls = sd |> Enum.filter(&(&1 in @allowed_sample_rates)) |> Enum.uniq() |> Enum.sort()
+        alls = sd |> Enum.filter(&(&1 in @allowed_sample_rates)) |> Enum.uniq() |> Enum.sort()
 
-      selected =
-        Enum.reduce(alls, sd, fn all, sd -> List.delete(sd, all) end)
-        |> Enum.filter(&(&1 in @allowed_sample_rates))
-        |> List.first()
+        selected =
+          Enum.reduce(alls, sd, fn all, sd -> List.delete(sd, all) end)
+          |> Enum.filter(&(&1 in @allowed_sample_rates))
+          |> List.first()
 
-      %{device | sample_rate: selected, supported_sample_rates: alls}
-    end)
+        %{device | sample_rate: selected, supported_sample_rates: alls}
+      end)
+
+    :gen_udp.close(s)
+    res
   end
 
   def set_sample_rate(device, sample_rate) do
