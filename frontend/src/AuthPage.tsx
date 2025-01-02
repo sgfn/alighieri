@@ -1,7 +1,7 @@
 import { Button, Center, Input, InputGroup, InputRightElement, useToast, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import Frame from "./Frame";
-import { toastErrorParams } from "./toaster";
+import Frame from "./components/Frame";
+import { toastErrorParams } from "./utils/toaster";
 
 interface AuthPageProps {
   setLoggedIn: (isLoggedIn: boolean) => void

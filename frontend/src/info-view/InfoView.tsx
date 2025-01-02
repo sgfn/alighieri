@@ -1,7 +1,7 @@
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
-import DeviceList from "./DeviceList";
-import Frame from "./Frame";
-import Settings from "./Settings";
+import Frame from "../components/Frame";
+import DeviceList from "./devices/DeviceList";
+import Settings from "./settings/Settings";
 
 export default function InfoView() {
     return (

@@ -1,9 +1,9 @@
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from "@chakra-ui/icons";
 import { Flex, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { getDevices } from "./backendController";
+import { Channels, Device } from "../../types";
+import { getDevices } from "../../utils/backendController";
 import DeviceDetails from "./DeviceDetails";
-import { Channels, Device } from "./types";
 
 
 export default function DeviceList() {

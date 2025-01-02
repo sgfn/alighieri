@@ -1,4 +1,4 @@
-import { ChannelAddress, channelAddressToJson, Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "./types";
+import { ChannelAddress, channelAddressToJson, Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "../types";
 
 const hostname = window.location.hostname;
 const BASE_URL = `http://${hostname}:4000/`;

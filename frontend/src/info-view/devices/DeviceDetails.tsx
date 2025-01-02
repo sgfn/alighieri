@@ -1,7 +1,7 @@
 import { QuestionIcon } from "@chakra-ui/icons";
 import { Box, Button, Divider, Flex, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
-import { identifyChannel } from "./backendController";
-import { Device } from "./types";
+import { Device } from "../../types";
+import { identifyChannel } from "../../utils/backendController";
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
