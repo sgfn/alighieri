@@ -7,84 +7,69 @@ import { getDevices, getSubscriptions } from "./utils/backendController";
 
 export default function MainPage() {
   const [devices, setDevices] = useState<Device[]>([])
+  const [devicesSet, setDevicesSet] = useState<Set<number>>(new Set());
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subscriptionsSet, setSubscriptionsSet] = useState<Set<string>>(new Set()); // I know it's not done properly, string is for overriding objects equality
 
-  useEffect(() => {
-    const fetchDevices = async () => {
-      console.log('fetching devices')
-      const devices = await getDevices();
-      setDevices(devices);
-      if (ref.current) {
-        ref.current.addDevices(devices);
+  const updateDevices = (updateDevices: Device[]) => {
+    const newDevices = updateDevices.filter(device => !devicesSet.has(device.id));
+    const updateDevicesSet = new Set(updateDevices.map(device => device.id));
+    const oldDevices = devices.filter(device => !updateDevicesSet.has(device.id));
+    if (ref.current) {
+      if (newDevices.length > 0) {
+        ref.current.addDevices(newDevices);
       }
-    };
+      if (oldDevices.length > 0) {
+        ref.current.removeDevices(oldDevices.map(device => device.id));
+      }
+    }
+    for (let device of newDevices) {
+      devicesSet.add(device.id);
+    }
+    for (let device of oldDevices) {
+      devicesSet.delete(device.id);
+    }
+    setDevices(updateDevices);
+  }
+
+  const updateSubscriptions = (updateSubscriptions: Subscription[]) => {
+    const newSubscriptions = updateSubscriptions.filter(subscription => !subscriptionsSet.has(JSON.stringify(subscription)));
+    const updateSubscriptionsSet = new Set(updateSubscriptions.map(subscription => JSON.stringify(subscription)));
+    const oldSubscriptions = subscriptions.filter(subscription => !updateSubscriptionsSet.has(JSON.stringify(subscription)));
+    if (ref.current) {
+      if (newSubscriptions.length > 0) {
+        ref.current.addSubscriptions(newSubscriptions);
+      }
+      if (oldSubscriptions.length > 0) {
+        ref.current.removeSubscriptions(oldSubscriptions);
+      }
+    }
+    for (let subscription of newSubscriptions) {
+      subscriptionsSet.add(JSON.stringify(subscription));
+    }
+    for (let subscription of oldSubscriptions) {
+      subscriptionsSet.delete(JSON.stringify(subscription));
+    }
+    setSubscriptions(updateSubscriptions);
+  }
+
+  const fetchDevices = async () => {
+    const devices = await getDevices();
+    updateDevices(devices);
+  };
+  useEffect(() => {
     fetchDevices();
   }, []);
 
 
+  const fetchSubscriptions = async () => {
+    const subs = await getSubscriptions();
+    updateSubscriptions(subs);
+  }
   useEffect(() => {
-    const fetchSubscriptions = async () => {
-      const subs = await getSubscriptions();
-      setSubscriptions(subs);
-      if (ref.current) {
-        ref.current.addSubscriptions(subs);
-      }
-    }
     fetchSubscriptions();
   }, []);
   const ref = useRef<RoutingViewMethods>(null);
-
-  const btnAddDevice = (): void => {
-    if (ref.current) {
-      ref.current.addDevices([{
-        id: 200,
-        name: "test",
-        channels: {
-          receivers: ["CH1"],
-          transmitters: ["CH1"],
-        },
-        ipv4: "0.0.0.0",
-        macAddress: "aaaa:bbbb:cccc:dddd:eeee:ffff",
-        sampleRate: 1,
-        subscriptions: [],
-      }]);
-    }
-  }
-  const btnRemoveDevice = (): void => {
-    if (ref.current) {
-      ref.current.removeDevices(['200']);
-    }
-  }
-  const btnAddSub = (): void => {
-    if (ref.current) {
-      ref.current.addSubscriptions([{
-        status: 'ok',
-        transmitter: {
-          deviceName: 'MIKROFON',
-          channelName: 'CH1',
-        },
-        receiver: {
-          deviceName: 'GLOSNIK1',
-          channelName: 'CH1',
-        },
-      }]);
-    }
-  }
-  const btnRemoveSub = (): void => {
-    if (ref.current) {
-      ref.current.removeSubscriptions([{
-        status: 'ok',
-        transmitter: {
-          deviceName: 'MIKROFON',
-          channelName: 'CH1',
-        },
-        receiver: {
-          deviceName: 'GLOSNIK1',
-          channelName: 'CH1',
-        },
-      }]);
-    }
-  }
 
   return (
     <Grid
@@ -97,10 +82,8 @@ export default function MainPage() {
         <RoutingView ref={ref} />
       </GridItem>
       <GridItem area="info" mr="4" mb="4">
-        <Button onClick={btnAddDevice} > add device </Button>
-        <Button onClick={btnRemoveDevice} > remove device </Button>
-        <Button onClick={btnAddSub} > add subscription </Button>
-        <Button onClick={btnRemoveSub} > remove subscription </Button>
+        <Button onClick={fetchSubscriptions} > fetch subscriptions </Button>
+        <Button onClick={fetchDevices} > fetch devices </Button>
         <InfoView devices={devices} />
       </GridItem>
     </Grid>

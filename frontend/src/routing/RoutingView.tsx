@@ -17,7 +17,7 @@ interface RoutingViewProps {
 
 export interface RoutingViewMethods {
     addDevices: (devices: Device[]) => void;
-    removeDevices: (deviceIds: string[]) => void;
+    removeDevices: (deviceIds: number[]) => void;
     addSubscriptions: (subscriptions: Subscription[]) => void;
     removeSubscriptions: (subscriptions: Subscription[]) => void;
 }
@@ -25,22 +25,22 @@ export interface RoutingViewMethods {
 const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
 
     const addDevices = (newDevices: Device[]) => {
-        console.log('add devices:', newDevices)
+        //console.log('add devices:', newDevices)
         const newNodes: NodeChange[] = getNodes(newDevices).map(node => ({ type: 'add', item: node }));
         onNodesChange(newNodes);
     };
-    const removeDevices = (deviceIds: string[]) => {
-        console.log('remove devices:', deviceIds)
-        const toBeRemoved: NodeChange[] = deviceIds.map(id => ({ type: 'remove', id: id }))
+    const removeDevices = (deviceIds: number[]) => {
+        //console.log('remove devices:', deviceIds)
+        const toBeRemoved: NodeChange[] = deviceIds.map(id => ({ type: 'remove', id: id.toString() }))
         onNodesChange(toBeRemoved);
     }
     const addSubscriptions = (subscriptions: Subscription[]) => {
-        console.log('new subs:', subscriptions);
+        //console.log('new subs:', subscriptions);
         const newEdges: EdgeChange[] = getEdges(subscriptions).map(edge => ({ type: 'add', item: edge }))
         onEdgesChange(newEdges);
     };
     const removeSubscriptions = (subscriptions: Subscription[]) => {
-        console.log('remove subs:', subscriptions);
+        //console.log('remove subs:', subscriptions);
         const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
         onEdgesChange(toBeRemoved);
     };
@@ -142,7 +142,7 @@ export function getNodes(devices: Device[]): Node[] {
     devices.forEach((device) => {
         y_pos += 64;
         nodes.push({
-            id: device.name,
+            id: device.id.toString(),
             position: { x: 0, y: y_pos },
             type: 'danteNode',
             data: { device: device }
