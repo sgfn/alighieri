@@ -17,15 +17,13 @@ export default function DanteNode({ data }: any) {
             {device.channels.transmitters.map((transmitter: string) => {
                 right += 1;
                 return (
-                    <DanteHandle label={transmitter} type="source" position={Position.Right} key={device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ top: handleMargin + offset * right, width: '12px', height: '12px', borderColor: 'black' }} >
-                    </DanteHandle>
+                    <DanteHandle label={transmitter} type="source" position={Position.Right} key={device.name + "/" + transmitter} id={"tx_" + transmitter} style={{ top: handleMargin + offset * right, width: '12px', height: '12px', borderColor: 'black' }} />
                 )
             })}
             {device.channels.receivers.map((receiver: string) => {
                 left += 1;
                 return (
-                    <DanteHandle label={receiver} type="target" position={Position.Left} key={device.name + "/" + receiver} id={"rx_" + receiver} style={{ top: handleMargin + offset * left, backgroundColor: ' #C53030', width: '12px', height: '12px', borderColor: 'black' }}>
-                    </DanteHandle>
+                    <DanteHandle label={receiver} type="target" position={Position.Left} key={device.name + "/" + receiver} id={"rx_" + receiver} style={{ top: handleMargin + offset * left, backgroundColor: ' #C53030', width: '12px', height: '12px', borderColor: 'black' }} />
                 )
             })}
         </>
@@ -39,10 +37,10 @@ function DanteHandle(props: any) {
     });
 
     return (
-        <Handle {...props} isConnectable={connections.length < 1} >
-            <Tooltip label={props['label']} hasArrow placement='top'>
-                <ArrowForwardIcon w='10px' h='10px' color='white' top='-8.5px' position='relative' />
-            </Tooltip>
-        </Handle>
+        <Tooltip label={props['label']} hasArrow placement='top'>
+            <Handle {...props} isConnectable={connections.length < 1} >
+                <ArrowForwardIcon className={props.type} w='10px' h='10px' color='white' top='-8.5px' position='relative' />
+            </Handle>
+        </Tooltip>
     );
 };

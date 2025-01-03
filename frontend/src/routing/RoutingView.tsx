@@ -1,5 +1,5 @@
 import { Box, Button, useToast } from "@chakra-ui/react";
-import { addEdge, Controls, Edge, MiniMap, Node, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
+import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import React, { RefObject } from "react";
 import { forwardRef, Ref, useCallback, useEffect, useState } from "react";
@@ -16,16 +16,32 @@ interface RoutingViewProps {
 }
 
 export interface RoutingViewMethods {
-    testFn: (text: string) => void
+    addDevices: (devices: Device[]) => void;
+    removeDevices: (deviceIds: string[]) => void;
+    addSubscriptions: (subscriptions: Subscription[]) => void;
+    removeSubscriptions: (subscriptions: Subscription[]) => void;
 }
 
-const RoutingView = forwardRef((props: { baseInfo: string }, ref: Ref<RoutingViewMethods>) => {
+const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
 
-    const [info, setInfo] = useState<string>(props.baseInfo);
-    const testFn = (text: string) => {
-        setInfo(text);
+    const addDevices = (newDevices: Device[]) => {
+        const newNodes: NodeChange[] = getNodes(newDevices).map(node => ({ type: 'add', item: node }));
+        onNodesChange(newNodes);
+    };
+    const removeDevices = (deviceIds: string[]) => {
+        const toBeRemoved: NodeChange[] = deviceIds.map(id => ({ type: 'remove', id: id }))
+        onNodesChange(toBeRemoved);
     }
-    React.useImperativeHandle(ref, () => ({ testFn }))
+    const addSubscriptions = (subscriptions: Subscription[]) => {
+        const newEdges: EdgeChange[] = getEdges(subscriptions).map(edge => ({ type: 'add', item: edge }))
+        onEdgesChange(newEdges);
+    };
+    const removeSubscriptions = (subscriptions: Subscription[]) => {
+        const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
+        onEdgesChange(toBeRemoved);
+    };
+
+    React.useImperativeHandle(ref, () => ({ addDevices, removeDevices, addSubscriptions, removeSubscriptions }))
 
     const toast = useToast();
     const nodeTypes = { danteNode: DanteNode }
@@ -121,7 +137,6 @@ const RoutingView = forwardRef((props: { baseInfo: string }, ref: Ref<RoutingVie
     return (
         <Frame>
             <Button onClick={onRoutingGraphSave} > save graph </Button>
-            <Box>{info}</Box>
             <Box w='778px' h='670px' >
                 <ReactFlow
                     nodes={nodes}
