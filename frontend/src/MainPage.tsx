@@ -1,9 +1,37 @@
 import { Button, Grid, GridItem } from "@chakra-ui/react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import InfoView from "./info-view/InfoView";
 import RoutingView, { RoutingViewMethods } from "./routing/RoutingView";
+import { Device, Subscription } from "./types";
+import { getDevices, getSubscriptions } from "./utils/backendController";
 
 export default function MainPage() {
+  const [devices, setDevices] = useState<Device[]>([])
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      console.log('fetching devices')
+      const devices = await getDevices();
+      setDevices(devices);
+      if (ref.current) {
+        ref.current.addDevices(devices);
+      }
+    };
+    fetchDevices();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      const subs = await getSubscriptions();
+      setSubscriptions(subs);
+      if (ref.current) {
+        ref.current.addSubscriptions(subs);
+      }
+    }
+    fetchSubscriptions();
+  }, []);
   const ref = useRef<RoutingViewMethods>(null);
 
   const btnAddDevice = (): void => {
@@ -73,7 +101,7 @@ export default function MainPage() {
         <Button onClick={btnRemoveDevice} > remove device </Button>
         <Button onClick={btnAddSub} > add subscription </Button>
         <Button onClick={btnRemoveSub} > remove subscription </Button>
-        <InfoView />
+        <InfoView devices={devices} />
       </GridItem>
     </Grid>
   );

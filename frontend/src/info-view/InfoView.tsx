@@ -1,9 +1,14 @@
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
 import Frame from "../components/Frame";
+import { Device } from "../types";
 import DeviceList from "./devices/DeviceList";
 import Settings from "./settings/Settings";
 
-export default function InfoView() {
+interface InfoViewProps {
+    devices: Device[]
+}
+
+export default function InfoView({ devices }: InfoViewProps) {
     return (
         <Frame>
             <Tabs>
@@ -14,7 +19,7 @@ export default function InfoView() {
 
                 <TabPanels>
                     <TabPanel>
-                        <DeviceList />
+                        <DeviceList devices={devices} />
                     </TabPanel>
                     <TabPanel>
                         <Settings />

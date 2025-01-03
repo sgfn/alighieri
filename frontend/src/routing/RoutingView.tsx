@@ -25,18 +25,22 @@ export interface RoutingViewMethods {
 const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
 
     const addDevices = (newDevices: Device[]) => {
+        console.log('add devices:', newDevices)
         const newNodes: NodeChange[] = getNodes(newDevices).map(node => ({ type: 'add', item: node }));
         onNodesChange(newNodes);
     };
     const removeDevices = (deviceIds: string[]) => {
+        console.log('remove devices:', deviceIds)
         const toBeRemoved: NodeChange[] = deviceIds.map(id => ({ type: 'remove', id: id }))
         onNodesChange(toBeRemoved);
     }
     const addSubscriptions = (subscriptions: Subscription[]) => {
+        console.log('new subs:', subscriptions);
         const newEdges: EdgeChange[] = getEdges(subscriptions).map(edge => ({ type: 'add', item: edge }))
         onEdgesChange(newEdges);
     };
     const removeSubscriptions = (subscriptions: Subscription[]) => {
+        console.log('remove subs:', subscriptions);
         const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
         onEdgesChange(toBeRemoved);
     };
@@ -46,34 +50,12 @@ const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
     const toast = useToast();
     const nodeTypes = { danteNode: DanteNode }
 
-    const [devices, setDevices] = useState<Device[]>([])
-    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const initialNodes: Node[] = [];
+    const initialEdges: Edge[] = [];
 
-    const initialNodes: Node[] = getNodes(devices);
-    const initialEdges = getEdges(subscriptions);
-
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [rfInstance, setRfInstance] = useState<any>(null);
-
-    useEffect(() => {
-        const fetchDevices = async () => {
-            const devices = await getDevices();
-            setDevices(devices);
-            setNodes(getNodes(devices));
-        };
-        fetchDevices();
-    }, [setNodes]);
-
-
-    useEffect(() => {
-        const fetchSubscriptions = async () => {
-            const subs = await getSubscriptions();
-            setSubscriptions(subs);
-            setEdges(getEdges(subs));
-        }
-        fetchSubscriptions();
-    }, [setEdges]);
 
     const onConnect = useCallback(
         async (params: any) => {
@@ -178,7 +160,6 @@ export function getEdges(subscriptions: Subscription[]) {
             sourceHandle: 'tx_' + subscription.transmitter.channelName,
             target: subscription.receiver.deviceName,
             targetHandle: 'rx_' + subscription.receiver.channelName,
-            // type: 'smoothstep',
         })));
     return edges;
 }

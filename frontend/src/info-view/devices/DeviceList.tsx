@@ -1,22 +1,13 @@
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from "@chakra-ui/icons";
 import { Flex, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
 import { Channels, Device } from "../../types";
-import { getDevices } from "../../utils/backendController";
 import DeviceDetails from "./DeviceDetails";
 
+interface DeviceListProps {
+    devices: Device[]
+}
 
-export default function DeviceList() {
-    const [devices, setDevices] = useState<Device[]>([])
-
-    useEffect(() => {
-        const fetchDevices = async () => {
-            let fetchedDevices = await getDevices();
-            setDevices(fetchedDevices);
-        };
-
-        fetchDevices();
-    }, []);
+export default function DeviceList({ devices }: DeviceListProps) {
 
     return (
         <TableContainer>
@@ -39,7 +30,7 @@ export default function DeviceList() {
 
 function DeviceRow(device: Device) {
     return (
-        <Tr>
+        <Tr key={device.id}>
             <Td>
                 <Flex>
                     <Text>{device.name}</Text>
