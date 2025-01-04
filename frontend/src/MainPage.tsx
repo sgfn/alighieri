@@ -54,6 +54,7 @@ export default function MainPage() {
   }
 
   const fetchDevices = async () => {
+    console.log('fetch devices');
     const devices = await getDevices();
     updateDevices(devices);
   };
@@ -63,6 +64,7 @@ export default function MainPage() {
 
 
   const fetchSubscriptions = async () => {
+    console.log('fetch subscriptions');
     const subs = await getSubscriptions();
     updateSubscriptions(subs);
   }
@@ -70,6 +72,22 @@ export default function MainPage() {
     fetchSubscriptions();
   }, []);
   const ref = useRef<RoutingViewMethods>(null);
+
+  const fetchAll = () => {
+    fetchDevices();
+    fetchSubscriptions();
+  }
+
+  const FETCH_INTERVAL = 30_000;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('fetch devices and subscriptions from backend');
+      fetchAll();
+    }, FETCH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [])
 
   return (
     <Grid
@@ -82,8 +100,6 @@ export default function MainPage() {
         <RoutingView ref={ref} />
       </GridItem>
       <GridItem area="info" mr="4" mb="4">
-        <Button onClick={fetchSubscriptions} > fetch subscriptions </Button>
-        <Button onClick={fetchDevices} > fetch devices </Button>
         <InfoView devices={devices} />
       </GridItem>
     </Grid>
