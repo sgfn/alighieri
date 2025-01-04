@@ -1,5 +1,5 @@
-import { Box, Button, useToast } from "@chakra-ui/react";
-import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowInstance, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
+import { Box, Text, Button, useToast } from "@chakra-ui/react";
+import { addEdge, ControlButton, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowInstance, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import localforage from "localforage";
 import React from "react";
@@ -145,9 +145,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
 
     return (
         <Frame>
-            <Button onClick={onSave} > save graph </Button>
-            <Button onClick={onRestore} > update graph </Button>
-            <Box w='778px' h='670px' >
+            <Box w='100%' h='100%' >
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -155,7 +153,10 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
                     onEdgesChange={customOnEdgesChange}
                     onConnect={onConnect}
                     nodeTypes={nodeTypes}>
-                    <Controls />
+                    <Controls >
+                        <Button onClick={onSave} p='2' bgColor='white' h='26px'><Text fontSize='xs'> save graph</Text></Button>
+                        <Button onClick={onRestore} p='2' bgColor='white' h='26px'><Text fontSize='xs'> load graph</Text></Button>
+                    </Controls>
                     <MiniMap />
                 </ReactFlow>
             </Box>
