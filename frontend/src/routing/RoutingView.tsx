@@ -1,13 +1,19 @@
 import { Box, Button, useToast } from "@chakra-ui/react";
-import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
+import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowInstance, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
+import localforage from "localforage";
 import React from "react";
-import { forwardRef, Ref, useCallback, useState } from "react";
+import { forwardRef, Ref, useCallback } from "react";
 import Frame from "../components/Frame";
 import { Device, SimpleSubscription, simpleSubscriptionToJson, Subscription } from "../types";
 import { createSubscription, deleteSubscription, } from "../utils/backendController";
 import DanteNode from "./DanteNode";
-import { getEdgeId, getSimpleSubscriptionFromEdge, getSimpleSubscriptionJson } from "./utils";
+import { getEdgeId, getSimpleSubscriptionFromEdge } from "./utils";
+
+localforage.config({
+    name: 'react-flow',
+    storeName: 'flows',
+});
 
 export interface RoutingViewProps {
     onSubscriptionRemove: (subscription: SimpleSubscription) => void
@@ -56,10 +62,9 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
 
-    const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [rfInstance, setRfInstance] = useState<any>(null);
-    //const [edgesSet, _setEdgesSet] = useState<Set<string>>(new Set());
+    const { setViewport, toObject } = useReactFlow();
 
     const onConnect = useCallback(
         async (params: any) => {
@@ -116,17 +121,32 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
         }
     }
 
-    const onRoutingGraphSave = useCallback(() => {
-        console.log('done');
-        if (rfInstance) {
-            const flow = rfInstance.toObject();
-            localStorage.setItem('flowKey', JSON.stringify(flow));
-        }
-    }, [rfInstance]);
+    const flowKey = 'alighieriGraphState';
+    const onSave = useCallback(() => {
+        const flow = toObject();
+        localforage.setItem(flowKey, flow);
+    }, [toObject]);
+
+    const onRestore = useCallback(() => {
+        const restoreFlow = async () => {
+            const flow: ReactFlowJsonObject | null = await localforage.getItem(flowKey);
+
+            if (flow) {
+                const { x, y, zoom } = flow.viewport;
+
+                const currentNodes = toObject().nodes;
+                setNodes(getNewNodes(currentNodes, flow.nodes));
+                setViewport({ x, y, zoom: zoom || 0 });
+            }
+        };
+
+        restoreFlow();
+    }, [setNodes, setEdges, setViewport]);
 
     return (
         <Frame>
-            <Button onClick={onRoutingGraphSave} > save graph </Button>
+            <Button onClick={onSave} > save graph </Button>
+            <Button onClick={onRestore} > update graph </Button>
             <Box w='778px' h='670px' >
                 <ReactFlow
                     nodes={nodes}
@@ -134,7 +154,6 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
                     onNodesChange={onNodesChange}
                     onEdgesChange={customOnEdgesChange}
                     onConnect={onConnect}
-                    onInit={setRfInstance}
                     nodeTypes={nodeTypes}>
                     <Controls />
                     <MiniMap />
@@ -170,6 +189,17 @@ export function getEdges(subscriptions: Subscription[]) {
             targetHandle: 'rx_' + subscription.receiver.channelName,
         })));
     return edges;
+}
+
+export function getNewNodes(currentNodes: Node[], savedNodes: Node[]): Node[] {
+    for (let currentNode of currentNodes) {
+        const savedNode = savedNodes.find(node => node.id === currentNode.id);
+        if (savedNode) {
+            currentNode.position = savedNode.position;
+        }
+    }
+    console.log('currentNodes', currentNodes);
+    return currentNodes;
 }
 
 export default RoutingView;

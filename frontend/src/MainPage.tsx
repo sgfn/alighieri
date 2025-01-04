@@ -1,4 +1,5 @@
 import { Grid, GridItem } from "@chakra-ui/react";
+import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useRef, useState } from "react";
 import InfoView from "./info-view/InfoView";
 import RoutingView, { RoutingViewMethods } from "./routing/RoutingView";
@@ -102,7 +103,9 @@ export default function MainPage() {
       gap="4"
     >
       <GridItem area="routing" ml="4" mb="4">
-        <RoutingView onSubscriptionRemove={onSubscriptionRemove} ref={ref} />
+        <ReactFlowProvider>
+          <RoutingView onSubscriptionRemove={onSubscriptionRemove} ref={ref} />
+        </ReactFlowProvider>
       </GridItem>
       <GridItem area="info" mr="4" mb="4">
         <InfoView devices={devices} />
