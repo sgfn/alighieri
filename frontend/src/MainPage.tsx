@@ -1,15 +1,15 @@
-import { Button, Grid, GridItem } from "@chakra-ui/react";
+import { Grid, GridItem } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import InfoView from "./info-view/InfoView";
 import RoutingView, { RoutingViewMethods } from "./routing/RoutingView";
-import { Device, Subscription } from "./types";
+import { compareSimpleToSubscription, Device, SimpleSubscription, Subscription } from "./types";
 import { getDevices, getSubscriptions } from "./utils/backendController";
 
 export default function MainPage() {
   const [devices, setDevices] = useState<Device[]>([])
-  const [devicesSet, setDevicesSet] = useState<Set<number>>(new Set());
+  const [devicesSet, _setDevicesSet] = useState<Set<number>>(new Set());
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [subscriptionsSet, setSubscriptionsSet] = useState<Set<string>>(new Set()); // I know it's not done properly, string is for overriding objects equality
+  const [subscriptionsSet, _setSubscriptionsSet] = useState<Set<string>>(new Set()); // I know it's not done properly, string is for overriding objects equality
 
   const updateDevices = (updateDevices: Device[]) => {
     const newDevices = updateDevices.filter(device => !devicesSet.has(device.id));
@@ -66,6 +66,7 @@ export default function MainPage() {
   const fetchSubscriptions = async () => {
     console.log('fetch subscriptions');
     const subs = await getSubscriptions();
+    //console.log('fetched subscriptions:', subs);
     updateSubscriptions(subs);
   }
   useEffect(() => {
@@ -89,6 +90,10 @@ export default function MainPage() {
     return () => clearInterval(interval);
   }, [])
 
+  const onSubscriptionRemove = (simpleSubscription: SimpleSubscription) => {
+    setSubscriptions(subscriptions.filter(subscription => !compareSimpleToSubscription(simpleSubscription, subscription)))
+  }
+
   return (
     <Grid
       templateAreas={`"routing info"`}
@@ -97,7 +102,7 @@ export default function MainPage() {
       gap="4"
     >
       <GridItem area="routing" ml="4" mb="4">
-        <RoutingView ref={ref} />
+        <RoutingView onSubscriptionRemove={onSubscriptionRemove} ref={ref} />
       </GridItem>
       <GridItem area="info" mr="4" mb="4">
         <InfoView devices={devices} />

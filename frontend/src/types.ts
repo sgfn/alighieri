@@ -136,3 +136,7 @@ export interface DhcpSettings {
     range_from: string,
     range_to: string
 }
+
+export function compareSimpleToSubscription(simpleSubscription: SimpleSubscription, subscription: Subscription): boolean {
+    return (JSON.stringify(simpleSubscription.receiver) == JSON.stringify(subscription.receiver) && JSON.stringify(simpleSubscription.transmitter) == JSON.stringify(subscription.transmitter))
+} 

@@ -1,18 +1,16 @@
 import { Box, Button, useToast } from "@chakra-ui/react";
 import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, useEdgesState, useNodesState } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
-import React, { RefObject } from "react";
-import { forwardRef, Ref, useCallback, useEffect, useState } from "react";
+import React from "react";
+import { forwardRef, Ref, useCallback, useState } from "react";
 import Frame from "../components/Frame";
-import { Device, Subscription } from "../types";
-import { createSubscription, deleteSubscription, getDevices, getSubscriptions } from "../utils/backendController";
+import { Device, SimpleSubscription, simpleSubscriptionToJson, Subscription } from "../types";
+import { createSubscription, deleteSubscription, } from "../utils/backendController";
 import DanteNode from "./DanteNode";
-import { getEdgeId, getSimpleSubscriptionJson } from "./utils";
+import { getEdgeId, getSimpleSubscriptionFromEdge, getSimpleSubscriptionJson } from "./utils";
 
-
-interface RoutingViewProps {
-    devices: Device[],
-    subscriptions: Subscription[]
+export interface RoutingViewProps {
+    onSubscriptionRemove: (subscription: SimpleSubscription) => void
 }
 
 export interface RoutingViewMethods {
@@ -22,7 +20,7 @@ export interface RoutingViewMethods {
     removeSubscriptions: (subscriptions: Subscription[]) => void;
 }
 
-const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
+const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: RoutingViewProps, ref: Ref<RoutingViewMethods>) => {
 
     const addDevices = (newDevices: Device[]) => {
         console.log('add devices:', newDevices)
@@ -36,8 +34,13 @@ const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
     }
     const addSubscriptions = (subscriptions: Subscription[]) => {
         console.log('new subs:', subscriptions);
-        const newEdges: EdgeChange[] = getEdges(subscriptions).map(edge => ({ type: 'add', item: edge }))
-        onEdgesChange(newEdges);
+        const edgesSet = new Set(edges.map(edge => edge.id));
+        const newEdges: Edge[] = getEdges(subscriptions).filter(edge => !edgesSet.has(edge.id))
+        for (let edge of newEdges) {
+            edgesSet.add(edge.id);
+        }
+        const newEdgesChanges: EdgeChange[] = newEdges.map(edge => ({ type: 'add', item: edge }))
+        onEdgesChange(newEdgesChanges);
     };
     const removeSubscriptions = (subscriptions: Subscription[]) => {
         console.log('remove subs:', subscriptions);
@@ -56,6 +59,7 @@ const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
     const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [rfInstance, setRfInstance] = useState<any>(null);
+    //const [edgesSet, _setEdgesSet] = useState<Set<string>>(new Set());
 
     const onConnect = useCallback(
         async (params: any) => {
@@ -87,13 +91,14 @@ const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
     );
 
     async function customOnEdgesChange(changes: any) {
-        const simpleSubscriptionJson = getSimpleSubscriptionJson(edges, changes[0].id);
         if (changes[0].type === 'remove') {
-            if (simpleSubscriptionJson === null) {
+            console.log('remove');
+            const simpleSubscription = getSimpleSubscriptionFromEdge(edges, changes[0].id);
+            if (simpleSubscription === null) {
                 console.log('subscriptions does not exist');
                 return;
             }
-            let deleteSubscriptionPromise = deleteSubscription(simpleSubscriptionJson);
+            let deleteSubscriptionPromise = deleteSubscription(simpleSubscriptionToJson(simpleSubscription));
             toast.promise(deleteSubscriptionPromise, {
                 success: { title: 'routing', description: 'removed subscription', position: 'top' },
                 error: { title: 'routing', description: 'failed to remove subscription', position: 'top' },
@@ -101,11 +106,14 @@ const RoutingView = forwardRef((_props, ref: Ref<RoutingViewMethods>) => {
             });
             try {
                 await deleteSubscriptionPromise;
+                onSubscriptionRemove(simpleSubscription);
+                onEdgesChange(changes);
             } catch (error) {
                 console.log(`couldn't delete edge due to following error: ${error}`);
             }
+        } else {
+            onEdgesChange(changes);
         }
-        onEdgesChange(changes)
     }
 
     const onRoutingGraphSave = useCallback(() => {
