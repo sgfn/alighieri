@@ -44,7 +44,7 @@ export default function DeviceDetails(device: Device) {
                                         <ListItem key={device.id + '/inputs'}>
                                             <Text>inputs:</Text>
                                             <UnorderedList>
-                                                {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id, subscription: findSubscription(device, channelName) }))}
+                                                {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id, subscription: findSubscription(device, channelName, ChannelType.TRANSMITTER) }))}
                                             </UnorderedList>
                                         </ListItem>
                                     }
@@ -52,7 +52,7 @@ export default function DeviceDetails(device: Device) {
                                         <ListItem key={device.id + '/outputs'}>
                                             <Text>outputs:</Text>
                                             <UnorderedList>
-                                                {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast, subscription: findSubscription(device, channelName) }))}
+                                                {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast, subscription: findSubscription(device, channelName, ChannelType.RECEIVER) }))}
                                             </UnorderedList>
                                         </ListItem>
                                     }
@@ -91,13 +91,11 @@ function outputChannelRow({ channelName, deviceName, deviceId, toast, subscripti
 
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
-            <Flex alignItems='center'>
+            <Flex alignItems='center' justifyContent='flex-start'>
                 <Text>{channelName}</Text>
-                <Spacer width='2' />
                 <Tooltip label='identify device'>
-                    <QuestionIcon onClick={handleIdentify} />
+                    <QuestionIcon m='4px' onClick={handleIdentify} />
                 </Tooltip>
-                <Spacer width='2' />
                 {subscription !== null ? <HStack><ArrowBackIcon /> <Text>{subscription}</Text></HStack> : null}
             </Flex>
         </ListItem>
@@ -154,12 +152,17 @@ function formatWithSpaces(input: number): string {
     return cleanedInput.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-function findSubscription(device: Device, channel: string): string | null {
+enum ChannelType {
+    TRANSMITTER = 'TRANSMITTER',
+    RECEIVER = 'RECEIVER'
+}
+
+function findSubscription(device: Device, channel: string, channelType: ChannelType): string | null {
     for (const subscription of device.subscriptions) {
-        if (subscription.receiver.deviceName == device.name && subscription.receiver.channelName == channel) {
+        if (channelType === ChannelType.RECEIVER && subscription.receiver.deviceName == device.name && subscription.receiver.channelName == channel) {
             return `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName}`;
         }
-        if (subscription.transmitter.deviceName == device.name && subscription.transmitter.channelName == channel) {
+        if (channelType === ChannelType.TRANSMITTER && subscription.transmitter.deviceName == device.name && subscription.transmitter.channelName == channel) {
             return `${subscription.receiver.deviceName}/${subscription.receiver.channelName}`;
         }
     }
