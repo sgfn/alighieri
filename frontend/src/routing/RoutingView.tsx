@@ -1,4 +1,4 @@
-import { Box, Text, Button, useToast } from "@chakra-ui/react";
+import { Box, Text, Button, useToast, Tooltip } from "@chakra-ui/react";
 import { addEdge, ControlButton, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowInstance, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import localforage from "localforage";
@@ -137,6 +137,16 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
                 const currentNodes = toObject().nodes;
                 setNodes(getNewNodes(currentNodes, flow.nodes));
                 setViewport({ x, y, zoom: zoom || 0 });
+            } else {
+                toast({
+                    title: "couldn't find saved layout",
+                    description: 'you need to save layout first, it is stored in browser',
+                    status: 'error',
+                    duration: 9000,
+                    isClosable: true,
+                    position: 'top'
+                })
+
             }
         };
 
@@ -154,8 +164,12 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
                     onConnect={onConnect}
                     nodeTypes={nodeTypes}>
                     <Controls >
-                        <Button onClick={onSave} p='2' bgColor='white' h='26px'><Text fontSize='xs'> save graph</Text></Button>
-                        <Button onClick={onRestore} p='2' bgColor='white' h='26px'><Text fontSize='xs'> load graph</Text></Button>
+                        <Tooltip hasArrow placement='top-end' label='save nodes layot and viewport in the browser'>
+                            <Button onClick={onSave} p='2' bgColor='white' h='26px'><Text fontSize='xs'> save graph</Text></Button>
+                        </Tooltip>
+                        <Tooltip hasArrow placement='top-end' label='load nodes layout and viewport saved in the browser'>
+                            <Button onClick={onRestore} p='2' bgColor='white' h='26px'><Text fontSize='xs'> load graph</Text></Button>
+                        </Tooltip>
                     </Controls>
                     <MiniMap />
                 </ReactFlow>
