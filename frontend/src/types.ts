@@ -139,4 +139,11 @@ export interface DhcpSettings {
 
 export function compareSimpleToSubscription(simpleSubscription: SimpleSubscription, subscription: Subscription): boolean {
     return (JSON.stringify(simpleSubscription.receiver) == JSON.stringify(subscription.receiver) && JSON.stringify(simpleSubscription.transmitter) == JSON.stringify(subscription.transmitter))
-} 
+}
+
+export function subscriptionToSimple(subscription: Subscription): SimpleSubscription {
+    return {
+        receiver: subscription.receiver,
+        transmitter: subscription.transmitter
+    }
+}

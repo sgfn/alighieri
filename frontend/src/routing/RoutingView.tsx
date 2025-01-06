@@ -7,32 +7,55 @@ import Frame from "../components/Frame";
 import { Device, SimpleSubscription, simpleSubscriptionToJson, Subscription } from "../types";
 import { createSubscription, deleteSubscription, } from "../utils/backendController";
 import DanteNode from "./DanteNode";
-import { getEdgeId, getSimpleSubscriptionFromEdge, getSimpleSubscriptionJson } from "./utils";
+import { getEdgeId, getSimpleSubscriptionFromEdge } from "./utils";
 
 export interface RoutingViewProps {
-    onSubscriptionRemove: (subscription: SimpleSubscription) => void
+    onSubscriptionRemove: (subscription: SimpleSubscription) => void,
+    onRefresh: () => void
 }
 
 export interface RoutingViewMethods {
     addDevices: (devices: Device[]) => void;
-    removeDevices: (deviceIds: number[]) => void;
-    addSubscriptions: (subscriptions: Subscription[]) => void;
-    removeSubscriptions: (subscriptions: Subscription[]) => void;
+    removeDevices: (deviceIds: Device[]) => void;
+    addSubscriptions: (subscriptions: SimpleSubscription[]) => void;
+    removeSubscriptions: (subscriptions: SimpleSubscription[]) => void;
 }
 
-const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: RoutingViewProps, ref: Ref<RoutingViewMethods>) => {
+const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingViewProps, ref: Ref<RoutingViewMethods>) => {
 
     const addDevices = (newDevices: Device[]) => {
         console.log('add devices:', newDevices)
         const newNodes: NodeChange[] = getNodes(newDevices).map(node => ({ type: 'add', item: node }));
         onNodesChange(newNodes);
+        let newDeviceStr = "";
+        for (let device of newDevices) {
+            newDeviceStr = newDeviceStr + device.name + ", "
+        }
+        newDeviceStr = newDeviceStr.slice(0, -2);
+        toast({
+            title: 'found new devices',
+            description: newDeviceStr,
+            position: 'top',
+            status: 'info'
+        })
     };
-    const removeDevices = (deviceIds: number[]) => {
-        console.log('remove devices:', deviceIds)
-        const toBeRemoved: NodeChange[] = deviceIds.map(id => ({ type: 'remove', id: id.toString() }))
+    const removeDevices = (oldDevices: Device[]) => {
+        console.log('remove devices:', oldDevices)
+        const toBeRemoved: NodeChange[] = oldDevices.map(device => ({ type: 'remove', id: device.id.toString() }))
         onNodesChange(toBeRemoved);
+        let removedDevicesStr = "";
+        for (let device of oldDevices) {
+            removedDevicesStr = removedDevicesStr + device.name + ", "
+        }
+        removedDevicesStr = removedDevicesStr.slice(0, -2);
+        toast({
+            title: 'removed devices',
+            description: removedDevicesStr,
+            position: 'top',
+            status: 'info'
+        })
     }
-    const addSubscriptions = (subscriptions: Subscription[]) => {
+    const addSubscriptions = (subscriptions: SimpleSubscription[]) => {
         console.log('new subs:', subscriptions);
         const edgesSet = new Set(edges.map(edge => edge.id));
         const newEdges: Edge[] = getEdges(subscriptions).filter(edge => !edgesSet.has(edge.id))
@@ -41,11 +64,33 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
         }
         const newEdgesChanges: EdgeChange[] = newEdges.map(edge => ({ type: 'add', item: edge }))
         onEdgesChange(newEdgesChanges);
+        let newSubscriptionsStr = "";
+        for (let subscription of subscriptions) {
+            newSubscriptionsStr = newSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
+        }
+        newSubscriptionsStr = newSubscriptionsStr.slice(0, -2);
+        toast({
+            title: 'found new subscriptions',
+            description: newSubscriptionsStr,
+            position: 'top',
+            status: 'info'
+        })
     };
-    const removeSubscriptions = (subscriptions: Subscription[]) => {
+    const removeSubscriptions = (subscriptions: SimpleSubscription[]) => {
         console.log('remove subs:', subscriptions);
         const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
         onEdgesChange(toBeRemoved);
+        let oldSubscriptionsStr = "";
+        for (let subscription of subscriptions) {
+            oldSubscriptionsStr = oldSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
+        }
+        oldSubscriptionsStr = oldSubscriptionsStr.slice(0, -2);
+        toast({
+            title: 'removed subscriptions',
+            description: oldSubscriptionsStr,
+            position: 'top',
+            status: 'info'
+        })
     };
 
     React.useImperativeHandle(ref, () => ({ addDevices, removeDevices, addSubscriptions, removeSubscriptions }))
@@ -59,7 +104,6 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
     const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [rfInstance, setRfInstance] = useState<any>(null);
-    //const [edgesSet, _setEdgesSet] = useState<Set<string>>(new Set());
 
     const onConnect = useCallback(
         async (params: any) => {
@@ -127,6 +171,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove: onSubscriptionRemove }: 
     return (
         <Frame>
             <Button onClick={onRoutingGraphSave} > save graph </Button>
+            <Button onClick={onRefresh} > refresh </Button>
             <Box w='778px' h='670px' >
                 <ReactFlow
                     nodes={nodes}
@@ -159,9 +204,9 @@ export function getNodes(devices: Device[]): Node[] {
     return nodes;
 }
 
-export function getEdges(subscriptions: Subscription[]) {
+export function getEdges(subscriptions: SimpleSubscription[]) {
     const edges: Edge[] = [];
-    subscriptions.forEach((subscription: Subscription) => (edges.push(
+    subscriptions.forEach((subscription: SimpleSubscription) => (edges.push(
         {
             id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName,
             source: subscription.transmitter.deviceName,
