@@ -12,7 +12,12 @@ defmodule Alighieri.Controller.DHCP do
   end
 
   def apply_config(config) do
-    GenServer.call(__MODULE__, {:apply_config, config})
+    if GenServer.whereis(__MODULE__) do
+      GenServer.call(__MODULE__, {:apply_config, config})
+    else
+      Logger.warning("Unable to apply DHCP server config, server controller is down")
+      :ok
+    end
   end
 
   @impl true

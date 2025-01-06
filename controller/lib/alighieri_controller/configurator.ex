@@ -15,7 +15,7 @@ defmodule Alighieri.Controller.Configurator do
   @spec get_sample_rates!([Device.t()]) :: [Device.t()]
   def get_sample_rates!(devices) do
     {:ok, aaa} = :inet.getifaddrs()
-    ifname = Application.fetch_env!(:alighieri_controller, :dhcp_iface) |> String.to_charlist()
+    ifname = Application.fetch_env!(:alighieri_controller, :net_iface) |> String.to_charlist()
 
     ifaddr =
       Enum.find_value(aaa, fn {k, v} ->
