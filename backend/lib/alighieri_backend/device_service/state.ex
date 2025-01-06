@@ -1,13 +1,14 @@
 defmodule Alighieri.Backend.DeviceService.State do
   @moduledoc false
 
-  alias Alighieri.{ChannelAddress, Device}
+  alias Alighieri.{ChannelAddress, Device, Subscription}
 
   @type device_id :: integer()
   @type devices :: %{device_id() => Device.t()}
 
   @type t :: %__MODULE__{
           client: term(),
+          ident_caddr: ChannelAddress.t(),
           devices: devices(),
           device_mac_to_id: %{String.t() => device_id()},
           device_name_to_id: %{String.t() => device_id()},
@@ -18,7 +19,7 @@ defmodule Alighieri.Backend.DeviceService.State do
           last_fetch: integer()
         }
 
-  @enforce_keys [:client]
+  @enforce_keys [:client, :ident_caddr]
 
   defstruct @enforce_keys ++
               [
@@ -57,8 +58,20 @@ defmodule Alighieri.Backend.DeviceService.State do
   @spec put_device(t(), Device.t()) :: {device_id(), t()}
   def put_device(state, device) do
     case Map.get(state.device_mac_to_id, device.mac_address) do
-      nil -> add_device(state, device)
-      id -> {id, %{state | devices: Map.put(state.devices, id, device)}}
+      nil ->
+        add_device(state, device)
+
+      id ->
+        old_device = Map.fetch!(state.devices, id)
+
+        new_device = %{
+          device
+          | sample_rate: device.sample_rate || old_device.sample_rate,
+            supported_sample_rates:
+              device.supported_sample_rates || old_device.supported_sample_rates
+        }
+
+        {id, %{state | devices: Map.put(state.devices, id, new_device)}}
     end
   end
 
