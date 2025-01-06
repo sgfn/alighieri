@@ -16,9 +16,9 @@ defmodule Alighieri.Backend.Application do
 
     children = [
       Alighieri.BackendWeb.Telemetry,
-      Alighieri.Backend.Repo,
-      {Ecto.Migrator,
-       repos: Application.fetch_env!(:alighieri_backend, :ecto_repos), skip: skip_migrations?()},
+      # Alighieri.Backend.Repo,
+      # {Ecto.Migrator,
+      #  repos: Application.fetch_env!(:alighieri_backend, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:alighieri_backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Alighieri.Backend.PubSub},
       {Alighieri.Backend.DeviceService,

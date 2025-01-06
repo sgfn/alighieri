@@ -20,13 +20,18 @@ defmodule Alighieri.Controller.Application do
     :ok = setup_distribution()
     Alighieri.Controller.Netaudio.version!() |> Logger.info()
 
-    dhcp_config =
-      @default_dhcp_config
-      |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :dhcp_iface))
+    children =
+      if Application.fetch_env!(:alighieri_controller, :enable_dhcp_server) do
+        Logger.info("Starting DHCP server")
 
-    children = [
-      {Alighieri.Controller.DHCP, dhcp_config}
-    ]
+        dhcp_config =
+          @default_dhcp_config
+          |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :net_iface))
+
+        [{Alighieri.Controller.DHCP, dhcp_config}]
+      else
+        []
+      end
 
     opts = [strategy: :one_for_one, name: Alighieri.Controller.Supervisor]
 
