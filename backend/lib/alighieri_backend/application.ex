@@ -22,7 +22,13 @@ defmodule Alighieri.Backend.Application do
       {DNSCluster, query: Application.get_env(:alighieri_backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Alighieri.Backend.PubSub},
       {Alighieri.Backend.DeviceService,
-       [%{node: Application.fetch_env!(:alighieri_backend, :controller_node)}]},
+       [
+         %{
+           node: Application.fetch_env!(:alighieri_backend, :controller_node),
+           ident_device_name: Application.fetch_env!(:alighieri_backend, :ident_device_name),
+           ident_device_channel: Application.fetch_env!(:alighieri_backend, :ident_device_channel)
+         }
+       ]},
       Alighieri.BackendWeb.Endpoint
     ]
 

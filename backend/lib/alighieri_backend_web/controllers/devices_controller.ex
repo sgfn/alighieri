@@ -69,12 +69,11 @@ defmodule Alighieri.BackendWeb.DevicesController do
     name = params["device_name"]
     channel = params["channel_name"]
 
-    with false <- is_nil(name) or is_nil(channel) do
+    if is_nil(name) or is_nil(channel) do
+      {:error, :bad_request, "Invalid request structure"}
+    else
       DeviceService.identify(%ChannelAddress{device_name: name, channel_name: channel})
       send_resp(conn, :no_content, "")
-    else
-      :error ->
-        {:error, :bad_request, "Invalid request structure"}
     end
   end
 end

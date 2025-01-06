@@ -100,4 +100,6 @@ config :alighieri_backend,
   node: System.get_env("ALI_DIST_NODE", "alighieri@backend") |> String.to_atom(),
   dist_cookie: System.get_env("ALI_DIST_COOKIE", "alighieri-cookie") |> String.to_atom(),
   username: System.get_env("ALI_USERNAME", "admin"),
-  password: System.get_env("ALI_PASSWORD", "admin")
+  password: System.get_env("ALI_PASSWORD", "admin"),
+  ident_device_name: System.get_env("ALI_IDENT_DEVICE_NAME", "no-such-device"),
+  ident_device_channel: System.get_env("ALI_IDENT_DEVICE_CHANNEL", "CH1")

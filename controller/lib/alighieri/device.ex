@@ -31,6 +31,9 @@ defmodule Alighieri.Device do
   @derive Jason.Encoder
   defstruct @enforce_keys ++ [sample_rate: nil, supported_sample_rates: nil]
 
+  @allowed_sample_rates [44_100, 48_000, 88_200, 96_000, 176_400, 192_000]
+  def allowed_sample_rates, do: @allowed_sample_rates
+
   @spec from_json!(map()) :: t() | no_return()
   def from_json!(data) do
     case data do

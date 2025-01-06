@@ -43,9 +43,9 @@ defmodule Alighieri.Subscription do
 
         maybe_status = data["status_text"] || data["status"]
 
-        if not is_nil(maybe_status),
-          do: %__MODULE__{sub | status: maybe_status},
-          else: sub
+        if is_nil(maybe_status),
+          do: sub,
+          else: %__MODULE__{sub | status: maybe_status}
 
       other ->
         raise "Invalid subscription JSON structure: #{inspect(other)}"
