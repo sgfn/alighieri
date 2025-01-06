@@ -1,4 +1,4 @@
-import { Grid, GridItem } from "@chakra-ui/react";
+import { Button, Grid, GridItem } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import InfoView from "./info-view/InfoView";
 import RoutingView, { RoutingViewMethods } from "./routing/RoutingView";
@@ -29,7 +29,7 @@ export default function MainPage() {
     for (let device of oldDevices) {
       devicesSet.delete(device.id);
     }
-    setDevices(updateDevices);
+    //setDevices(updateDevices);
   }
 
   const updateSubscriptions = (updateSubscriptions: Subscription[]) => {
@@ -50,13 +50,16 @@ export default function MainPage() {
     for (let subscription of oldSubscriptions) {
       subscriptionsSet.delete(JSON.stringify(subscription));
     }
-    setSubscriptions(updateSubscriptions);
+    //setSubscriptions(updateSubscriptions);
   }
 
   const fetchDevices = async () => {
     console.log('fetch devices');
-    const devices = await getDevices();
-    updateDevices(devices);
+    const fetchedDevices: Device[] = await getDevices();
+    console.log('fetched devices:', fetchedDevices);
+    console.log('devices:', devices);
+    setDevices(fetchedDevices);
+    updateDevices(fetchedDevices);
   };
   useEffect(() => {
     fetchDevices();
@@ -65,33 +68,36 @@ export default function MainPage() {
 
   const fetchSubscriptions = async () => {
     console.log('fetch subscriptions');
-    const subs = await getSubscriptions();
-    //console.log('fetched subscriptions:', subs);
-    updateSubscriptions(subs);
+    const fetchedSubscriptions: Subscription[] = await getSubscriptions();
+    console.log('fetched subscriptions:', fetchedSubscriptions);
+    console.log('subscriptions:', subscriptions);
+    setSubscriptions(fetchedSubscriptions);
+    updateSubscriptions(fetchedSubscriptions);
   }
   useEffect(() => {
     fetchSubscriptions();
   }, []);
   const ref = useRef<RoutingViewMethods>(null);
 
-  const fetchAll = () => {
-    fetchDevices();
-    fetchSubscriptions();
+  const fetchAll = async () => {
+    await fetchDevices();
+    await fetchSubscriptions();
   }
 
-  const FETCH_INTERVAL = 30_000;
+  const FETCH_INTERVAL = 10_000;
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       console.log('fetch devices and subscriptions from backend');
-      fetchAll();
+      await fetchAll();
     }, FETCH_INTERVAL);
 
     return () => clearInterval(interval);
   }, [])
 
   const onSubscriptionRemove = (simpleSubscription: SimpleSubscription) => {
-    setSubscriptions(subscriptions.filter(subscription => !compareSimpleToSubscription(simpleSubscription, subscription)))
+    //setSubscriptions(subscriptions.filter(subscription => !compareSimpleToSubscription(simpleSubscription, subscription)))
+    //  subscriptionsSet.delete(JSON.stringify(subscription));
   }
 
   return (
@@ -105,6 +111,9 @@ export default function MainPage() {
         <RoutingView onSubscriptionRemove={onSubscriptionRemove} ref={ref} />
       </GridItem>
       <GridItem area="info" mr="4" mb="4">
+        <Button onClick={fetchAll}> btn </Button>
+        <Button onClick={fetchSubscriptions}> sub </Button>
+        <Button onClick={fetchDevices}> dev </Button>
         <InfoView devices={devices} />
       </GridItem>
     </Grid>
