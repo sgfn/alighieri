@@ -27,7 +27,7 @@ defmodule Alighieri.Backend.MixProject do
   defp deps do
     [
       # Alighieri deps
-      {:alighieri_controller, path: "../controller/", runtime: false},
+      {:alighieri_controller, path: "../controller/"},
 
       # Regular deps
       {:phoenix, "~> 1.7.11"},

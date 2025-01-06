@@ -15,27 +15,31 @@ defmodule Alighieri.Controller.Application do
 
   @impl true
   def start(_type, _args) do
-    Logger.info("Starting Alighieri controller")
-
-    :ok = setup_distribution()
-    Alighieri.Controller.Netaudio.version!() |> Logger.info()
-
-    children =
-      if Application.fetch_env!(:alighieri_controller, :enable_dhcp_server) do
-        Logger.info("Starting DHCP server")
-
-        dhcp_config =
-          @default_dhcp_config
-          |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :net_iface))
-
-        [{Alighieri.Controller.DHCP, dhcp_config}]
-      else
-        []
-      end
-
     opts = [strategy: :one_for_one, name: Alighieri.Controller.Supervisor]
 
-    Supervisor.start_link(children, opts)
+    if Application.fetch_env!(:alighieri_controller, :start_app) do
+      Logger.info("Starting Alighieri controller")
+
+      :ok = setup_distribution()
+      Alighieri.Controller.Netaudio.version!() |> Logger.info()
+
+      children =
+        if Application.fetch_env!(:alighieri_controller, :enable_dhcp_server) do
+          Logger.info("Starting DHCP server")
+
+          dhcp_config =
+            @default_dhcp_config
+            |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :net_iface))
+
+          [{Alighieri.Controller.DHCP, dhcp_config}]
+        else
+          []
+        end
+
+      Supervisor.start_link(children, opts)
+    else
+      Supervisor.start_link([], opts)
+    end
   end
 
   defp setup_distribution() do
@@ -54,10 +58,9 @@ defmodule Alighieri.Controller.Application do
         {:error, reason} ->
           raise "Couldn't start node, reason: #{inspect(reason)}"
       end
-
-      Application.fetch_env!(:alighieri_controller, :dist_cookie) |> Node.set_cookie()
     end
 
+    Application.fetch_env!(:alighieri_controller, :dist_cookie) |> Node.set_cookie()
     :ok
   end
 

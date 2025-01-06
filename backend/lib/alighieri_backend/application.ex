@@ -44,10 +44,10 @@ defmodule Alighieri.Backend.Application do
     :ok
   end
 
-  defp skip_migrations?() do
-    # By default, sqlite migrations are run when using a release
-    System.get_env("RELEASE_NAME") != nil
-  end
+  # defp skip_migrations?() do
+  #   # By default, sqlite migrations are run when using a release
+  #   System.get_env("RELEASE_NAME") != nil
+  # end
 
   defp setup_distribution() do
     :ok = ensure_epmd_started!()
@@ -65,10 +65,9 @@ defmodule Alighieri.Backend.Application do
         {:error, reason} ->
           raise "Couldn't start node, reason: #{inspect(reason)}"
       end
-
-      Application.fetch_env!(:alighieri_backend, :dist_cookie) |> Node.set_cookie()
     end
 
+    Application.fetch_env!(:alighieri_backend, :dist_cookie) |> Node.set_cookie()
     :ok
   end
 

@@ -22,6 +22,8 @@ else
     secret_key_base: "uIMS8mRiNchnuXwZOLa1YhzLSZXl9R+Sl/LbwjQPxUFBEBN+0LLNiJUc4XHRe021"
 end
 
+config :alighieri_controller, start_app: false
+
 config :alighieri_backend,
   controller_node:
     System.get_env("ALI_DIST_CONTROLLER_NODE", "alicontroller@controller") |> String.to_atom(),
