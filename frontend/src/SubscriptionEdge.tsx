@@ -18,7 +18,7 @@ export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sou
     targetPosition
   });
 
-  const status = data !== undefined ? data['status'] : undefined;
+  const status = data !== undefined ? data['status'] : 'unknown';
 
   return (
     <>

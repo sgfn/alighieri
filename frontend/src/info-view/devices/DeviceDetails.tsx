@@ -140,7 +140,7 @@ function SampleRateSelector(device: Device, toast: any) {
     return (
         <Select onChange={e => onChange(parseInt(e.target.value))} value={selectedSampleRate === null ? 'unknown' : selectedSampleRate}>
             {supportedSampleRates.map(sampleRate => (
-                <option value={sampleRate}>
+                <option key={`${device.name}/${sampleRate}`} value={sampleRate}>
                     <Text fontWeight='semibold'>{formatWithSpaces(sampleRate)}</Text>
                 </option>
             ))}

@@ -150,3 +150,7 @@ export function subscriptionToSimple(subscription: Subscription): SimpleSubscrip
         transmitter: subscription.transmitter
     }
 }
+
+export function compareSubscriptions(subscription1: Subscription, subscription2: Subscription) {
+    return (JSON.stringify(subscriptionToSimple(subscription1)) == JSON.stringify(subscriptionToSimple(subscription2)));
+}

@@ -1,10 +1,11 @@
 import { Box, Text, Button, useToast, Tooltip } from "@chakra-ui/react";
-import { addEdge, ControlButton, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowInstance, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
+import { addEdge, Controls, Edge, EdgeChange, MiniMap, Node, NodeChange, ReactFlow, ReactFlowJsonObject, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 import localforage from "localforage";
 import React from "react";
 import { forwardRef, Ref, useCallback } from "react";
 import Frame from "../components/Frame";
+import SubscriptionEdge from "../SubscriptionEdge";
 import { Device, SimpleSubscription, simpleSubscriptionToJson, Subscription } from "../types";
 import { createSubscription, deleteSubscription, } from "../utils/backendController";
 import DanteNode from "./DanteNode";
@@ -23,8 +24,8 @@ export interface RoutingViewProps {
 export interface RoutingViewMethods {
     addDevices: (devices: Device[]) => void;
     removeDevices: (deviceIds: Device[]) => void;
-    addSubscriptions: (subscriptions: SimpleSubscription[]) => void;
-    removeSubscriptions: (subscriptions: SimpleSubscription[]) => void;
+    addSubscriptions: (subscriptions: Subscription[]) => void;
+    removeSubscriptions: (subscriptions: Subscription[]) => void;
 }
 
 const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingViewProps, ref: Ref<RoutingViewMethods>) => {
@@ -61,7 +62,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
         })
         onNodesChange(toBeRemoved);
     }
-    const addSubscriptions = (subscriptions: SimpleSubscription[]) => {
+    const addSubscriptions = (subscriptions: Subscription[]) => {
         console.log('new subs:', subscriptions);
         const edgesSet = new Set(edges.map(edge => edge.id));
         const newEdges: Edge[] = getEdges(subscriptions).filter(edge => !edgesSet.has(edge.id))
@@ -82,7 +83,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
         })
         onEdgesChange(newEdgesChanges);
     };
-    const removeSubscriptions = (subscriptions: SimpleSubscription[]) => {
+    const removeSubscriptions = (subscriptions: Subscription[]) => {
         console.log('remove subs:', subscriptions);
         const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
         let oldSubscriptionsStr = "";
@@ -103,6 +104,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
 
     const toast = useToast();
     const nodeTypes = { danteNode: DanteNode }
+    const edgeTypes = { subscriptionEdge: SubscriptionEdge }
 
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
@@ -113,7 +115,8 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
 
     const onConnect = useCallback(
         async (params: any) => {
-            setEdges((eds) => addEdge(params, eds));
+            const edge = { ...params, type: 'subscriptionEdge' }
+            setEdges((eds) => addEdge(edge, eds));
             let subscriptionPromise = createSubscription({
                 receiver: {
                     device_name: params.target,
@@ -207,7 +210,8 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
                     onNodesChange={onNodesChange}
                     onEdgesChange={customOnEdgesChange}
                     onConnect={onConnect}
-                    nodeTypes={nodeTypes}>
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}>
                     <Controls orientation="horizontal">
                         <Tooltip hasArrow placement='top-end' label='get devices and subscriptions from Dante network'>
                             <Button onClick={onRefresh} p='2' bgColor='white' h='26px'><Text fontSize='xs'> refresh</Text></Button>
@@ -241,15 +245,17 @@ export function getNodes(devices: Device[]): Node[] {
     return nodes;
 }
 
-export function getEdges(subscriptions: SimpleSubscription[]) {
+export function getEdges(subscriptions: Subscription[]) {
     const edges: Edge[] = [];
-    subscriptions.forEach((subscription: SimpleSubscription) => (edges.push(
+    subscriptions.forEach((subscription: Subscription) => (edges.push(
         {
             id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName,
             source: subscription.transmitter.deviceName,
             sourceHandle: 'tx_' + subscription.transmitter.channelName,
             target: subscription.receiver.deviceName,
             targetHandle: 'rx_' + subscription.receiver.channelName,
+            type: 'subscriptionEdge',
+            data: { status: subscription.status }
         })));
     return edges;
 }

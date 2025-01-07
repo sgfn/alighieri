@@ -33,14 +33,14 @@ export default function MainPage() {
     //setDevices(updateDevices);
   }
 
-  const updateSubscriptions = (updateSimpleSubscriptions: SimpleSubscription[]) => {
+  const updateSubscriptions = (updateSimpleSubscriptions: Subscription[]) => {
     //console.log('subscriptions set:', subscriptionsSet);
-    const newSubscriptions = updateSimpleSubscriptions.filter(subscription => !subscriptionsSet.has(JSON.stringify(subscription)));
+    const newSubscriptions = updateSimpleSubscriptions.filter(subscription => !subscriptionsSet.has(JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('new:', newSubscriptions);
-    const updateSubscriptionsSet = new Set(updateSimpleSubscriptions.map(subscription => JSON.stringify(subscription)));
+    const updateSubscriptionsSet = new Set(updateSimpleSubscriptions.map(subscription => JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('udapte set:', updateSubscriptionsSet);
     //console.log('simple:', subscriptions.map(subscription => subscriptionToSimple(subscription)));
-    const oldSubscriptions = subscriptions.map(subscription => subscriptionToSimple(subscription)).filter(subscription => !updateSubscriptionsSet.has(JSON.stringify(subscription)));
+    const oldSubscriptions = subscriptions.filter(subscription => !updateSubscriptionsSet.has(JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('old:', oldSubscriptions);
     if (ref.current) {
       if (newSubscriptions.length > 0) {
@@ -77,7 +77,7 @@ export default function MainPage() {
     const fetchedSubscriptions = await getSubscriptions();
     console.log('fetched subscriptions:', fetchedSubscriptions);
     console.log('current subscriptions:', subscriptions);
-    updateSubscriptions(fetchedSubscriptions.map(subscription => subscriptionToSimple(subscription)));
+    updateSubscriptions(fetchedSubscriptions);
     setSubscriptions(fetchedSubscriptions);
   }
   useEffect(() => {
