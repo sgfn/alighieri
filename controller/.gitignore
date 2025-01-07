@@ -26,6 +26,3 @@ alighieri_backend-*.tar
 /tmp/
 
 /venv/
-
-# Ignore burrito output
-/burrito_out/

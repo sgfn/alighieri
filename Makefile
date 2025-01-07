@@ -10,13 +10,22 @@ build_be:
 	mkdir -p build/
 	cd backend/ && MIX_ENV=prod mix deps.get
 	cd backend/ && MIX_ENV=prod mix release
-	cp backend/burrito_out/alighieri_server_linux build/alighieri_server
 
 build_ctr:
 	mkdir -p build/
 	cd controller/ && MIX_ENV=prod mix deps.get
 	cd controller/ && MIX_ENV=prod mix release
-	cp controller/burrito_out/alighieri_controller_linux build/alighieri_controller
 
-clean:
-	rm -rf build/ frontend/build/ backend/priv/static/ backend/_build/ backend/burrito_out/ controller/_build/ controller/burrito_out/
+clean: clean_bins clean_fe clean_be clean_ctr
+
+clean_bins:
+	rm -rf build/alighieri_*
+
+clean_fe:
+	rm -rf frontend/node_modules/ frontend/build/ backend/priv/static/
+
+clean_be:
+	rm -rf backend/deps/ backend/_build/
+
+clean_ctr:
+	rm -rf controller/deps/ controller/_build/

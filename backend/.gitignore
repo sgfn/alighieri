@@ -31,6 +31,3 @@ alighieri_backend-*.tar
 
 # Ignore static files, we generate them from the frontend/ dir
 /priv/static/
-
-# Ignore burrito output
-/burrito_out/

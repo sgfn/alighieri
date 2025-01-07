@@ -28,7 +28,7 @@ defmodule Alighieri.BackendWeb.Endpoint do
     at: "/",
     from: :alighieri_backend,
     gzip: false,
-    only: Alighieri.BackendWeb.static_paths()
+    # only: Alighieri.BackendWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

@@ -1,17 +1,4 @@
 defmodule Alighieri.Backend.MixProject do
-  defmodule FixDhcpServerCompilationStep do
-    def execute(ctx) do
-      path =
-        Mix.Project.compile_path()
-        |> Path.join("../../../rel/alighieri_backend/lib/dhcp_server-0.7.0/ebin")
-        |> Path.expand()
-
-      System.put_env("MIX_COMPILE_PATH", path)
-
-      ctx
-    end
-  end
-
   use Mix.Project
 
   def project do
@@ -23,7 +10,6 @@ defmodule Alighieri.Backend.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      releases: releases(),
       dialyzer: [plt_add_apps: [:alighieri_controller]]
     ]
   end
@@ -55,28 +41,9 @@ defmodule Alighieri.Backend.MixProject do
       {:bandit, "~> 1.2"},
       {:corsica, "~> 2.1"},
 
-      # Building binary releases
-      {:burrito, "~> 1.0"},
-
       # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false}
-    ]
-  end
-
-  defp releases do
-    [
-      alighieri_server: [
-        steps: [:assemble, &Burrito.wrap/1],
-        burrito: [
-          targets: [
-            linux: [os: :linux, cpu: :x86_64]
-          ],
-          extra_steps: [
-            patch: [pre: [FixDhcpServerCompilationStep]]
-          ]
-        ]
-      ]
     ]
   end
 
