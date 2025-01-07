@@ -20,9 +20,9 @@ build_ctr:
 	cd controller/_build/prod/rel/ && tar czf alighieri_controller.tgz alighieri_controller/
 	mv controller/_build/prod/rel/alighieri_controller.tgz build/
 
-clean: clean_bins clean_fe clean_be clean_ctr
+clean: clean_build clean_fe clean_be clean_ctr
 
-clean_bins:
+clean_build:
 	rm -rf build/alighieri_*
 
 clean_fe:
