@@ -1,6 +1,7 @@
 import { ChannelAddress, channelAddressToJson, Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "../types";
 
-const hostname = window.location.hostname;
+const hostname = '192.168.226.5';
+//const hostname = window.location.hostname;
 const BASE_URL = `http://${hostname}:4000/`;
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
@@ -139,6 +140,25 @@ export async function identifyChannel(channelAddress: ChannelAddress) {
     }
   } catch (error) {
     console.error("Failed to identify channel", error);
+    throw error;
+  }
+}
+
+export async function setSampleRate(sampleRate: number, deviceId: number) {
+  console.log('set sample rate', sampleRate);
+  try {
+    const response = await fetch(BASE_URL + `devices/${deviceId}/config`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sample_rate: sampleRate })
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to set sample rate", error);
     throw error;
   }
 }

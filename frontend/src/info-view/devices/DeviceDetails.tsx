@@ -1,7 +1,8 @@
 import { Device } from "../../types";
-import { identifyChannel } from "../../utils/backendController";
+import { identifyChannel, setSampleRate } from "../../utils/backendController";
 import { ArrowBackIcon, ArrowForwardIcon, QuestionIcon } from "@chakra-ui/icons";
-import { Box, Button, Divider, Flex, HStack, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, HStack, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -33,23 +34,23 @@ export default function DeviceDetails(device: Device) {
                             <Flex>
                                 <Text>sample rate:</Text>
                                 <Spacer width='10px' />
-                                <Text fontWeight='semibold'>{formatWithSpaces(device.sampleRate)}</Text>
+                                {SampleRateSelector(device, toast)}
                             </Flex>
                             <Spacer height='20px' />
                             <Box>
                                 <Text>channels:</Text>
                                 <UnorderedList pl='4'>
                                     {device.channels.transmitters.length < 1 ? null :
-                                        <ListItem key={device.id + '/inputs'}>
-                                            <Text>inputs:</Text>
+                                        <ListItem key={device.id + '/transmitters'}>
+                                            <Text>transmitters:</Text>
                                             <UnorderedList>
                                                 {device.channels.transmitters.map((channelName) => inputChannelRow({ channelName: channelName, deviceId: device.id, subscription: findSubscription(device, channelName, ChannelType.TRANSMITTER) }))}
                                             </UnorderedList>
                                         </ListItem>
                                     }
                                     {device.channels.receivers.length < 1 ? null :
-                                        <ListItem key={device.id + '/outputs'}>
-                                            <Text>outputs:</Text>
+                                        <ListItem key={device.id + '/receivers'}>
+                                            <Text>receivers:</Text>
                                             <UnorderedList>
                                                 {device.channels.receivers.map((channelName) => outputChannelRow({ channelName: channelName, deviceName: device.name, deviceId: device.id, toast: toast, subscription: findSubscription(device, channelName, ChannelType.RECEIVER) }))}
                                             </UnorderedList>
@@ -115,6 +116,35 @@ function inputChannelRow({ channelName, deviceId, subscription }: inputChannelRo
                 {subscription !== null ? <HStack><ArrowForwardIcon /> <Text>{subscription}</Text></HStack> : null}
             </Flex>
         </ListItem>
+    )
+}
+
+function SampleRateSelector(device: Device, toast: any) {
+    const [selectedSampleRate, setSelectedSampleRate] = useState<null | number>(device.sampleRate);
+    useEffect(() => {
+        setSelectedSampleRate(device.sampleRate);
+    }, [device.sampleRate])
+    const onChange = (sampleRate: number) => {
+        setSelectedSampleRate(sampleRate)
+        let setSampleRatePromise = setSampleRate(sampleRate, device.id);
+        toast.promise(setSampleRatePromise, {
+            success: { title: 'set sample rate', description: `sample rate set to ${formatWithSpaces(sampleRate)} successfully`, position: 'top' },
+            error: { title: 'set sample rate', description: 'error while setting sample rate', position: 'top' },
+            loading: { title: 'set sample rate', description: 'setting sample rate', position: 'top' }
+        });
+    }
+    if (device.supportedSampleRates === null) {
+        return (<Text fontWeight='semibold'>{formatWithSpaces(device.sampleRate)}</Text>);
+    }
+    const supportedSampleRates: number[] = device.supportedSampleRates;
+    return (
+        <Select onChange={e => onChange(parseInt(e.target.value))} value={selectedSampleRate === null ? 'unknown' : selectedSampleRate}>
+            {supportedSampleRates.map(sampleRate => (
+                <option value={sampleRate}>
+                    <Text fontWeight='semibold'>{formatWithSpaces(sampleRate)}</Text>
+                </option>
+            ))}
+        </Select>
     )
 }
 
