@@ -45,9 +45,13 @@ defmodule Alighieri.Controller.Configurator do
         sx = :binary.bin_to_list(msg) |> Enum.reverse() |> Enum.chunk_every(4)
 
         sd =
-          Enum.map(sx, fn [d, c, b, a] ->
-            <<v::unsigned-integer-big-32>> = <<a, b, c, d>>
-            v
+          Enum.map(sx, fn
+            [d, c, b, a] ->
+              <<v::unsigned-integer-big-32>> = <<a, b, c, d>>
+              v
+
+            _other ->
+              0
           end)
 
         alls =

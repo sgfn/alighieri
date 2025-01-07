@@ -29,3 +29,5 @@ alighieri_backend-*.tar
 *.db
 *.db-*
 
+# Ignore static files, we generate them from the frontend/ dir
+/priv/static/
