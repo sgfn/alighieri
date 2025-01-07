@@ -10,11 +10,13 @@ build_be:
 	mkdir -p build/
 	cd backend/ && MIX_ENV=prod mix deps.get
 	cd backend/ && MIX_ENV=prod mix release
+	tar czf build/alighieri_backend.tgz backend/_build/prod/rel/alighieri_backend/
 
 build_ctr:
 	mkdir -p build/
 	cd controller/ && MIX_ENV=prod mix deps.get
 	cd controller/ && MIX_ENV=prod mix release
+	tar czf build/alighieri_controller.tgz controller/_build/prod/rel/alighieri_controller/
 
 clean: clean_bins clean_fe clean_be clean_ctr
 

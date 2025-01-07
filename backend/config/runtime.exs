@@ -17,8 +17,8 @@ else
 
   config :alighieri_backend, Alighieri.BackendWeb.Endpoint,
     http: [ip: address, port: port],
-    # ATM nothing uses the `url` and `secret_key_base`, so we just set them to some constant value
-    url: [host: "example.com", port: 443, scheme: "https"],
+    url: [host: address, port: port, scheme: "http"],
+    # ATM nothing uses the `secret_key_base`, so we just set it to some constant value
     secret_key_base: "uIMS8mRiNchnuXwZOLa1YhzLSZXl9R+Sl/LbwjQPxUFBEBN+0LLNiJUc4XHRe021"
 end
 
