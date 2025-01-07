@@ -32,7 +32,6 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
     const addDevices = (newDevices: Device[]) => {
         console.log('add devices:', newDevices)
         const newNodes: NodeChange[] = getNodes(newDevices).map(node => ({ type: 'add', item: node }));
-        onNodesChange(newNodes);
         let newDeviceStr = "";
         for (let device of newDevices) {
             newDeviceStr = newDeviceStr + device.name + ", "
@@ -44,11 +43,11 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
             position: 'top',
             status: 'info'
         })
+        onNodesChange(newNodes);
     };
     const removeDevices = (oldDevices: Device[]) => {
         console.log('remove devices:', oldDevices)
-        const toBeRemoved: NodeChange[] = oldDevices.map(device => ({ type: 'remove', id: device.id.toString() }))
-        onNodesChange(toBeRemoved);
+        const toBeRemoved: NodeChange[] = oldDevices.map(device => ({ type: 'remove', id: device.name }))
         let removedDevicesStr = "";
         for (let device of oldDevices) {
             removedDevicesStr = removedDevicesStr + device.name + ", "
@@ -60,6 +59,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
             position: 'top',
             status: 'info'
         })
+        onNodesChange(toBeRemoved);
     }
     const addSubscriptions = (subscriptions: SimpleSubscription[]) => {
         console.log('new subs:', subscriptions);
@@ -69,7 +69,6 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
             edgesSet.add(edge.id);
         }
         const newEdgesChanges: EdgeChange[] = newEdges.map(edge => ({ type: 'add', item: edge }))
-        onEdgesChange(newEdgesChanges);
         let newSubscriptionsStr = "";
         for (let subscription of subscriptions) {
             newSubscriptionsStr = newSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
@@ -81,11 +80,11 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
             position: 'top',
             status: 'info'
         })
+        onEdgesChange(newEdgesChanges);
     };
     const removeSubscriptions = (subscriptions: SimpleSubscription[]) => {
         console.log('remove subs:', subscriptions);
         const toBeRemoved: EdgeChange[] = subscriptions.map(subscription => ({ type: 'remove', id: 'xy-edge__' + subscription.transmitter.deviceName + 'tx_' + subscription.transmitter.channelName + '-' + subscription.receiver.deviceName + 'rx_' + subscription.receiver.channelName }));
-        onEdgesChange(toBeRemoved);
         let oldSubscriptionsStr = "";
         for (let subscription of subscriptions) {
             oldSubscriptionsStr = oldSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
@@ -97,6 +96,7 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
             position: 'top',
             status: 'info'
         })
+        onEdgesChange(toBeRemoved);
     };
 
     React.useImperativeHandle(ref, () => ({ addDevices, removeDevices, addSubscriptions, removeSubscriptions }))

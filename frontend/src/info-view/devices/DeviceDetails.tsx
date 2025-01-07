@@ -33,7 +33,7 @@ export default function DeviceDetails(device: Device) {
                             <Flex>
                                 <Text>sample rate:</Text>
                                 <Spacer width='10px' />
-                                <Text fontWeight='semibold'>{formatWithSpaces(device.sampleRate)}Hz</Text>
+                                <Text fontWeight='semibold'>{formatWithSpaces(device.sampleRate)}</Text>
                             </Flex>
                             <Spacer height='20px' />
                             <Box>
@@ -110,11 +110,10 @@ interface inputChannelRowProps {
 function inputChannelRow({ channelName, deviceId, subscription }: inputChannelRowProps) {
     return (
         <ListItem key={deviceId + '/inputs/' + channelName}>
-            <Flex alignItems='center'>
+            <Flex alignItems='center' justifyContent='flex-start'>
                 <Text>{channelName}</Text>
-                <Spacer width='2' />
+                {subscription !== null ? <HStack><ArrowForwardIcon /> <Text>{subscription}</Text></HStack> : null}
             </Flex>
-            {subscription !== null ? <HStack><ArrowForwardIcon /> <Text>{subscription}</Text></HStack> : null}
         </ListItem>
     )
 }
@@ -146,9 +145,13 @@ function formatMacAddress(input: string): string {
     return formattedInput;
 }
 
-function formatWithSpaces(input: number): string {
+function formatWithSpaces(input: null | number): string {
+    if (input === null) {
+        return 'unknown';
+    }
     const cleanedInput = input.toString();
-    return cleanedInput.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const formattedInput = cleanedInput.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return formattedInput + 'Hz';
 }
 
 enum ChannelType {
