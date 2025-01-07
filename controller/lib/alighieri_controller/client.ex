@@ -104,8 +104,9 @@ defmodule Alighieri.Controller.Client do
     # rpc_call(state, Netaudio, :config_device, [device_name, options])
     result =
       with {:ok, sample_rate} <- Keyword.fetch(options, :sample_rate),
-           true <- sample_rate in Device.allowed_sample_rates() do
-        do_rpc_call(state.node, Configurator, :set_sample_rate, [device, sample_rate])
+           true <- sample_rate in Device.allowed_sample_rates(),
+           {:ok, result} <- do_rpc_call(state.node, Configurator, :set_sample_rate, [device, sample_rate]) do
+        result
       else
         _other -> :error
       end
