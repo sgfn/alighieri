@@ -17,7 +17,8 @@ defmodule Alighieri.BackendWeb.Endpoint do
     at: "/",
     from: :alighieri_backend,
     gzip: false
-    # only: Alighieri.BackendWeb.static_paths()
+
+  # only: Alighieri.BackendWeb.static_paths()
 
   if code_reloading? do
     plug Phoenix.CodeReloader

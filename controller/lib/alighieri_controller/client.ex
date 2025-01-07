@@ -105,7 +105,8 @@ defmodule Alighieri.Controller.Client do
     result =
       with {:ok, sample_rate} <- Keyword.fetch(options, :sample_rate),
            true <- sample_rate in Device.allowed_sample_rates(),
-           {:ok, result} <- do_rpc_call(state.node, Configurator, :set_sample_rate, [device, sample_rate]) do
+           {:ok, result} <-
+             do_rpc_call(state.node, Configurator, :set_sample_rate, [device, sample_rate]) do
         result
       else
         _other -> :error
@@ -136,6 +137,7 @@ defmodule Alighieri.Controller.Client do
 
   defp do_rpc_call(node, mod, fun, args \\ [], timeout \\ @rpc_timeout_ms) do
     IO.inspect({node, mod, fun, args, timeout}, label: :DO_RPC_CALL)
+
     try do
       {:ok, :erpc.call(node, mod, fun, args, timeout)}
     catch

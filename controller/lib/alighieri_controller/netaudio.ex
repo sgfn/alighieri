@@ -138,7 +138,7 @@ defmodule Alighieri.Controller.Netaudio do
   defp decode_json!(result) do
     result
     |> String.graphemes()
-    |> Enum.drop_while(& &1 not in ["{", "["])
+    |> Enum.drop_while(&(&1 not in ["{", "["]))
     |> to_string()
     |> Jason.decode!()
   end
