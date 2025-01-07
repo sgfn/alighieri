@@ -5,8 +5,6 @@ build_fe:
 	cd frontend/ && npm run build
 	mkdir -p backend/priv/static/alighieri/
 	cp -r frontend/build/* backend/priv/static/alighieri/
-	cp backend/priv/static/alighieri/favicon.ico backend/priv/static/
-	cp backend/priv/static/alighieri/index.html backend/priv/static/
 
 build_be:
 	mkdir -p build/

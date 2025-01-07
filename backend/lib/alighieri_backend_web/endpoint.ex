@@ -13,12 +13,12 @@ defmodule Alighieri.BackendWeb.Endpoint do
     allow_headers: :all,
     allow_methods: :all
 
+  plug :default_page
+
   plug Plug.Static,
     at: "/",
     from: :alighieri_backend,
     gzip: false
-
-  # only: Alighieri.BackendWeb.static_paths()
 
   if code_reloading? do
     plug Phoenix.CodeReloader
@@ -35,4 +35,12 @@ defmodule Alighieri.BackendWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug Alighieri.BackendWeb.Router
+
+  defp default_page(conn, _opts) do
+    if conn.request_path == "/" do
+      %{conn | request_path: "/alighieri/index.html", path_info: ["alighieri", "index.html"]}
+    else
+      conn
+    end
+  end
 end
