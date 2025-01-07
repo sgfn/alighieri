@@ -106,7 +106,7 @@ defmodule Alighieri.Controller.Netaudio do
     Logger.debug("netaudio exited with code #{exit_code} in #{end_time - start_time} ms")
 
     if exit_code == 0 do
-      {:ok, if(json?, do: Jason.decode!(result), else: result)}
+      {:ok, if(json?, do: decode_json!(result), else: result)}
     else
       :error
     end
@@ -134,4 +134,12 @@ defmodule Alighieri.Controller.Netaudio do
     do: {:ok, ["--set-latency", to_string(v)]}
 
   defp validate_option(_other), do: :error
+
+  defp decode_json!(result) do
+    result
+    |> String.graphemes()
+    |> Enum.drop_while(& &1 not in ["{", "["])
+    |> to_string()
+    |> Jason.decode!()
+  end
 end
