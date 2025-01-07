@@ -3,20 +3,24 @@ all: build_fe build_be build_ctr
 build_fe:
 	cd frontend/ && npm ci
 	cd frontend/ && npm run build
-	mkdir -p backend/priv/static/
-	cp -r frontend/build/* backend/priv/static/
+	mkdir -p backend/priv/static/alighieri/
+	cp -r frontend/build/* backend/priv/static/alighieri/
+	cp backend/priv/static/alighieri/favicon.ico backend/priv/static/
+	cp backend/priv/static/alighieri/index.html backend/priv/static/
 
 build_be:
 	mkdir -p build/
 	cd backend/ && MIX_ENV=prod mix deps.get
 	cd backend/ && MIX_ENV=prod mix release
-	tar czf build/alighieri_backend.tgz backend/_build/prod/rel/alighieri_backend/
+	cd backend/_build/prod/rel/ && tar czf alighieri_backend.tgz alighieri_backend/
+	mv backend/_build/prod/rel/alighieri_backend.tgz build/
 
 build_ctr:
 	mkdir -p build/
 	cd controller/ && MIX_ENV=prod mix deps.get
 	cd controller/ && MIX_ENV=prod mix release
-	tar czf build/alighieri_controller.tgz controller/_build/prod/rel/alighieri_controller/
+	cd controller/_build/prod/rel/ && tar czf alighieri_controller.tgz alighieri_controller/
+	mv controller/_build/prod/rel/alighieri_controller.tgz build/
 
 clean: clean_bins clean_fe clean_be clean_ctr
 

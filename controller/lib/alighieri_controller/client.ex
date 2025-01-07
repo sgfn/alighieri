@@ -136,8 +136,6 @@ defmodule Alighieri.Controller.Client do
   end
 
   defp do_rpc_call(node, mod, fun, args \\ [], timeout \\ @rpc_timeout_ms) do
-    IO.inspect({node, mod, fun, args, timeout}, label: :DO_RPC_CALL)
-
     try do
       {:ok, :erpc.call(node, mod, fun, args, timeout)}
     catch

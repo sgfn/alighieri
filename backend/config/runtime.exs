@@ -8,16 +8,16 @@ else
   # Force server in production
   config :alighieri_backend, Alighieri.BackendWeb.Endpoint, server: true
 
-  {:ok, address} =
-    to_charlist(System.get_env("ALI_LISTEN_ADDRESS") || "0.0.0.0") |> :inet.getaddr(:inet)
+  listen_address = System.get_env("ALI_LISTEN_ADDRESS", "0.0.0.0")
+  {:ok, listen_ip} = listen_address |> to_charlist() |> :inet.getaddr(:inet)
 
-  port = String.to_integer(System.get_env("ALI_LISTEN_PORT") || "4000")
+  listen_port = String.to_integer(System.get_env("ALI_LISTEN_PORT", "4000"))
 
   config :alighieri_backend, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :alighieri_backend, Alighieri.BackendWeb.Endpoint,
-    http: [ip: address, port: port],
-    url: [host: address, port: port, scheme: "http"],
+    http: [ip: listen_ip, port: listen_port],
+    url: [host: listen_address, port: listen_port, scheme: "http"],
     # ATM nothing uses the `secret_key_base`, so we just set it to some constant value
     secret_key_base: "uIMS8mRiNchnuXwZOLa1YhzLSZXl9R+Sl/LbwjQPxUFBEBN+0LLNiJUc4XHRe021"
 end

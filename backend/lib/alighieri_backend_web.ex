@@ -19,7 +19,8 @@ defmodule Alighieri.BackendWeb do
 
   def static_paths,
     do:
-      ~w(asset-manifest.json favicon.ico index.html logo192.png logo512.png manifest.json robots.txt static)
+      # ~w(asset-manifest.json favicon.ico index.html logo192.png logo512.png manifest.json robots.txt static)
+      ~w(alighieri favicon.ico index.html robots.txt)
 
   def router do
     quote do
