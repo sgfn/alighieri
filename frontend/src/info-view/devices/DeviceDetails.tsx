@@ -1,8 +1,7 @@
-import { ArrowBackIcon, ArrowForwardIcon, ArrowLeftIcon, ArrowRightIcon, QuestionIcon } from "@chakra-ui/icons";
+import { Device } from "../../types";
+import { identifyChannel } from "../../utils/backendController";
+import { ArrowBackIcon, ArrowForwardIcon, QuestionIcon } from "@chakra-ui/icons";
 import { Box, Button, Divider, Flex, HStack, ListItem, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Tooltip, UnorderedList, useDisclosure, useToast, VStack } from "@chakra-ui/react";
-import { channel } from "diagnostics_channel";
-import { identifyChannel } from "./backendController";
-import { Device } from "./types";
 
 export default function DeviceDetails(device: Device) {
     const { isOpen, onOpen, onClose } = useDisclosure()

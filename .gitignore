@@ -1,3 +1,7 @@
 # Editor-specific
 .vscode
 .idea
+
+erl_crash.dump
+/build/
+.tool-versions

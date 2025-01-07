@@ -2,6 +2,7 @@ defmodule Alighieri.BackendWeb.DevicesController do
   use Alighieri.BackendWeb, :controller
 
   alias Alighieri.Backend.DeviceService
+  alias Alighieri.ChannelAddress
 
   action_fallback Alighieri.BackendWeb.FallbackController
 
@@ -61,6 +62,18 @@ defmodule Alighieri.BackendWeb.DevicesController do
       # TODO TODO TODO
       :error ->
         {:error, :service_unavailable, "Unable to configure device"}
+    end
+  end
+
+  def identify(conn, params) do
+    name = params["device_name"]
+    channel = params["channel_name"]
+
+    if is_nil(name) or is_nil(channel) do
+      {:error, :bad_request, "Invalid request structure"}
+    else
+      DeviceService.identify(%ChannelAddress{device_name: name, channel_name: channel})
+      send_resp(conn, :no_content, "")
     end
   end
 end

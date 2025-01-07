@@ -1,6 +1,6 @@
 import { Button, Text, useToast, VStack } from "@chakra-ui/react";
 import { useRef } from "react";
-import { getConfig, sendConfig, } from "./backendController";
+import { getConfig, sendConfig } from "../../utils/backendController";
 
 
 export default function SystemConfiguration() {

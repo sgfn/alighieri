@@ -15,14 +15,14 @@ defmodule Alighieri.Backend.Application do
     :ok = setup_distribution()
 
     children = [
-      Alighieri.BackendWeb.Telemetry,
-      Alighieri.Backend.Repo,
-      {Ecto.Migrator,
-       repos: Application.fetch_env!(:alighieri_backend, :ecto_repos), skip: skip_migrations?()},
-      {DNSCluster, query: Application.get_env(:alighieri_backend, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Alighieri.Backend.PubSub},
       {Alighieri.Backend.DeviceService,
-       [%{node: Application.fetch_env!(:alighieri_backend, :controller_node)}]},
+       [
+         %{
+           node: Application.fetch_env!(:alighieri_backend, :controller_node),
+           ident_device_name: Application.fetch_env!(:alighieri_backend, :ident_device_name),
+           ident_device_channel: Application.fetch_env!(:alighieri_backend, :ident_device_channel)
+         }
+       ]},
       Alighieri.BackendWeb.Endpoint
     ]
 
@@ -30,17 +30,10 @@ defmodule Alighieri.Backend.Application do
     Supervisor.start_link(children, opts)
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
     Alighieri.BackendWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp skip_migrations?() do
-    # By default, sqlite migrations are run when using a release
-    System.get_env("RELEASE_NAME") != nil
   end
 
   defp setup_distribution() do
@@ -59,10 +52,9 @@ defmodule Alighieri.Backend.Application do
         {:error, reason} ->
           raise "Couldn't start node, reason: #{inspect(reason)}"
       end
-
-      Application.fetch_env!(:alighieri_backend, :dist_cookie) |> Node.set_cookie()
     end
 
+    Application.fetch_env!(:alighieri_backend, :dist_cookie) |> Node.set_cookie()
     :ok
   end
 

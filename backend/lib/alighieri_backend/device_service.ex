@@ -10,6 +10,7 @@ defmodule Alighieri.Backend.DeviceService do
   alias Alighieri.Backend.DummyClient
 
   @device_fetch_interval_ms 15_000
+  @long_cmd_timeout_ms 20_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -32,19 +33,36 @@ defmodule Alighieri.Backend.DeviceService do
   end
 
   def subscribe(spec) do
-    GenServer.call(__MODULE__, {:subscribe, spec})
+    GenServer.call(__MODULE__, {:subscribe, spec}, @long_cmd_timeout_ms)
   end
 
   def unsubscribe(rx_spec) do
-    GenServer.call(__MODULE__, {:unsubscribe, rx_spec})
+    GenServer.call(__MODULE__, {:unsubscribe, rx_spec}, @long_cmd_timeout_ms)
   end
 
+  # Supports only setting sample rate
   def config_device(id, options) do
-    GenServer.call(__MODULE__, {:config_device, id, options})
+    GenServer.call(__MODULE__, {:config_device, id, options}, @long_cmd_timeout_ms)
+  end
+
+  def config_dhcp(options) do
+    GenServer.call(__MODULE__, {:config_dhcp, options})
+  end
+
+  def identify(caddr) do
+    GenServer.call(__MODULE__, {:identify, caddr}, @long_cmd_timeout_ms * 2)
+  end
+
+  def get_config() do
+    GenServer.call(__MODULE__, :get_config)
+  end
+
+  def apply_config(config) do
+    GenServer.call(__MODULE__, {:apply_config, config}, @long_cmd_timeout_ms * 2)
   end
 
   @impl true
-  def init([%{node: node}]) do
+  def init([%{node: node, ident_device_name: idname, ident_device_channel: idch}]) do
     client =
       if node == :dummy do
         Logger.info("Using dummy client")
@@ -57,12 +75,22 @@ defmodule Alighieri.Backend.DeviceService do
 
     send(self(), :fetch_devices)
 
-    {:ok, %State{client: client}}
+    {:ok,
+     %State{client: client, ident_caddr: %ChannelAddress{device_name: idname, channel_name: idch}}}
   end
 
   @impl true
   def handle_call(:list_devices, _from, state) do
-    {:reply, {:ok, State.devices(state)}, state}
+    # This lists visible devices only
+    devices =
+      state
+      |> State.devices()
+      |> Map.new(fn {id, device} ->
+        tx_subs = Map.get(state.tx_subscriptions, device.name, [])
+        {id, Map.update!(device, :subscriptions, &(&1 ++ tx_subs))}
+      end)
+
+    {:reply, {:ok, devices}, state}
   end
 
   @impl true
@@ -97,13 +125,19 @@ defmodule Alighieri.Backend.DeviceService do
          {:ok, transmitter} <- State.get_device(state, name: spec.transmitter.device_name),
          true <- spec.receiver.channel_name in receiver.channels.receivers,
          true <- spec.transmitter.channel_name in transmitter.channels.transmitters,
-         # XXX: maybe verify further? e.g. is subscription already present?
+         nil <- maybe_subscription(receiver.subscriptions, spec.receiver.channel_name),
          :ok <- state.client.subscribe(spec) do
-      # TODO: UPDATE STATE
+      receiver = Map.update!(receiver, :subscriptions, &[spec | &1])
+      tx_subs = Map.update(state.tx_subscriptions, transmitter.name, [spec], &[spec | &1])
+
+      {_id, state} =
+        state
+        |> Map.put(:tx_subscriptions, tx_subs)
+        |> State.put_device(receiver)
+
       {:reply, :ok, state}
     else
-      _other ->
-        {:reply, :error, state}
+      _other -> {:reply, :error, state}
     end
   end
 
@@ -111,9 +145,19 @@ defmodule Alighieri.Backend.DeviceService do
   def handle_call({:unsubscribe, %ChannelAddress{} = rx_spec}, _from, state) do
     with {:ok, receiver} <- State.get_device(state, name: rx_spec.device_name),
          true <- rx_spec.channel_name in receiver.channels.receivers,
-         # XXX: maybe verify further?
+         sub when not is_nil(sub) <-
+           maybe_subscription(receiver.subscriptions, rx_spec.channel_name),
          :ok <- state.client.unsubscribe(rx_spec) do
-      # TODO: UPDATE STATE
+      receiver = Map.update!(receiver, :subscriptions, &List.delete(&1, sub))
+
+      tx_subs =
+        Map.update(state.tx_subscriptions, sub.transmitter.device_name, [], &List.delete(&1, sub))
+
+      {_id, state} =
+        state
+        |> Map.put(:tx_subscriptions, tx_subs)
+        |> State.put_device(receiver)
+
       {:reply, :ok, state}
     else
       _other -> {:reply, :error, state}
@@ -123,9 +167,10 @@ defmodule Alighieri.Backend.DeviceService do
   @impl true
   def handle_call({:config_device, id, options}, _from, state) do
     with {:ok, device} <- State.get_device(state, id: id),
-         # XXX: maybe verify further?
-         :ok <- state.client.config_device(device.name, options) do
-      # TODO: UPDATE STATE
+         :ok <- state.client.config_device(device, options) do
+      Logger.debug("Fetching updated sample rate...")
+      self_pid = self()
+      _pid = spawn_link(fn -> fetch_sample_rates(state.client, self_pid, [device]) end)
       {:reply, :ok, state}
     else
       _other -> {:reply, :error, state}
@@ -133,10 +178,103 @@ defmodule Alighieri.Backend.DeviceService do
   end
 
   @impl true
+  def handle_call({:config_dhcp, options}, _from, state) do
+    case state.client.config_dhcp(options) do
+      :ok -> {:reply, :ok, state}
+      _other -> {:reply, :error, state}
+    end
+  end
+
+  @impl true
+  # XXX this is ultra long, should it really be a call?
+  def handle_call({:identify, caddr}, _from, state) do
+    with {:ok, device} <- State.get_device(state, name: caddr.device_name),
+         true <- caddr.channel_name in device.channels.receivers do
+      {post_identify_hook, state} =
+        case maybe_subscription(device.subscriptions, caddr.channel_name) do
+          nil ->
+            {fn state -> state end, state}
+
+          subscription ->
+            # XXX handle not-ok
+            {:reply, :ok, state} = handle_call({:unsubscribe, subscription.receiver}, nil, state)
+
+            {
+              fn state ->
+                {:reply, :ok, state} = handle_call({:subscribe, subscription}, nil, state)
+                state
+              end,
+              state
+            }
+        end
+
+      tmp_sub = %Subscription{
+        receiver: caddr,
+        transmitter: state.ident_caddr
+      }
+
+      {:reply, :ok, state} = handle_call({:subscribe, tmp_sub}, nil, state)
+
+      state.client.play_sound()
+
+      {:reply, :ok, state} = handle_call({:unsubscribe, tmp_sub.receiver}, nil, state)
+
+      state = post_identify_hook.(state)
+
+      {:reply, :ok, state}
+    else
+      _other -> {:reply, :error, state}
+    end
+  end
+
+  @impl true
+  def handle_call(:get_config, _from, state) do
+    {:reply, {:ok, subs}, state} = handle_call(:list_subscriptions, nil, state)
+
+    config = %{subs: subs}
+
+    {:reply, {:ok, Jason.encode!(config)}, state}
+  end
+
+  @impl true
+  def handle_call({:apply_config, config}, _from, state) do
+    %{"subs" => subs} = Jason.decode!(config)
+
+    subs =
+      Enum.map(subs, fn aasub ->
+        %Subscription{
+          receiver: %ChannelAddress{
+            channel_name: aasub["receiver"]["channel_name"],
+            device_name: aasub["receiver"]["device_name"]
+          },
+          transmitter: %ChannelAddress{
+            channel_name: aasub["transmitter"]["channel_name"],
+            device_name: aasub["transmitter"]["device_name"]
+          }
+        }
+      end)
+
+    {:reply, {:ok, current_subs}, state} = handle_call(:list_subscriptions, nil, state)
+
+    state =
+      Enum.reduce(current_subs, state, fn sub, state ->
+        {:reply, :ok, state} = handle_call({:unsubscribe, sub.receiver}, nil, state)
+        state
+      end)
+
+    state =
+      Enum.reduce(subs, state, fn sub, state ->
+        {:reply, :ok, state} = handle_call({:subscribe, sub}, nil, state)
+        state
+      end)
+
+    {:reply, :ok, state}
+  end
+
+  @impl true
   def handle_info(:fetch_devices, state) do
     Logger.debug("Start fetching devices")
 
-    # XXX: consider refactoring into a dedicated fetcher module
     self_pid = self()
     _pid = spawn_link(fn -> fetch_devices(state.client, self_pid) end)
     Process.send_after(self(), :fetch_devices, @device_fetch_interval_ms)
@@ -148,14 +286,53 @@ defmodule Alighieri.Backend.DeviceService do
   def handle_info({:devices, devices}, state) do
     Logger.debug("Fetched device list")
 
-    # TODO: remove nonexistent devices!
-    #       (nontrivial because of IDs, maybe devices should be marked as hidden if not present?)
-    #         also XXX: persist device IDs?
+    {visible_devices, state} =
+      Enum.reduce(devices, {MapSet.new(), state}, fn device, {visible_devices, state} ->
+        {id, state} = State.put_device(state, device)
+        {MapSet.put(visible_devices, id), state}
+      end)
+
+    tx_subs =
+      Enum.reduce(state.devices, %{}, fn {_id, dev}, tx_subs ->
+        Enum.reduce(dev.subscriptions, tx_subs, fn sub, map ->
+          Map.update(map, sub.transmitter.device_name, [sub], &[sub | &1])
+        end)
+      end)
+
+    state =
+      state
+      |> Map.put(:last_fetch, System.monotonic_time(:millisecond))
+      |> Map.put(:visible_devices, visible_devices)
+      |> Map.put(:tx_subscriptions, tx_subs)
+
+    devices_without_sample_rates =
+      state
+      |> State.devices()
+      |> Map.values()
+      |> Enum.filter(&(is_nil(&1.sample_rate) || is_nil(&1.supported_sample_rates)))
+
+    unless Enum.empty?(devices_without_sample_rates) do
+      Logger.debug("Fetching sample rates...")
+      self_pid = self()
+
+      _pid =
+        spawn_link(fn ->
+          fetch_sample_rates(state.client, self_pid, devices_without_sample_rates)
+        end)
+    end
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:devices_with_sample_rates, devices}, state) do
+    Logger.debug("Fetched sample rates")
+
     state =
       Enum.reduce(devices, state, fn device, state ->
-        State.put_device(state, device)
+        {_id, state} = State.put_device(state, device)
+        state
       end)
-      |> Map.put(:last_fetch, System.monotonic_time(:millisecond))
 
     {:noreply, state}
   end
@@ -165,5 +342,18 @@ defmodule Alighieri.Backend.DeviceService do
       {:ok, devices} -> send(pid, {:devices, devices})
       error -> Logger.warning("Unable to fetch devices: #{inspect(error)}")
     end
+  end
+
+  defp fetch_sample_rates(client, pid, devices) do
+    case client.get_sample_rates(devices) do
+      {:ok, devices} -> send(pid, {:devices_with_sample_rates, devices})
+      error -> Logger.warning("Unable to fetch device sample rates: #{inspect(error)}")
+    end
+  end
+
+  defp maybe_subscription(subscriptions, rx_channel) do
+    Enum.find(subscriptions, fn sub ->
+      sub.receiver.channel_name == rx_channel
+    end)
   end
 end

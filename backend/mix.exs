@@ -4,7 +4,7 @@ defmodule Alighieri.Backend.MixProject do
   def project do
     [
       app: :alighieri_backend,
-      version: "0.1.0-dev",
+      version: "1.0.0-rc0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -27,17 +27,11 @@ defmodule Alighieri.Backend.MixProject do
   defp deps do
     [
       # Alighieri deps
-      {:alighieri_controller, path: "../controller/", runtime: false},
+      {:alighieri_controller, path: "../controller/"},
 
       # Regular deps
       {:phoenix, "~> 1.7.11"},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10"},
-      {:ecto_sqlite3, ">= 0.0.0"},
-      {:telemetry_metrics, "~> 0.6"},
-      {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
       {:corsica, "~> 2.1"},
 
@@ -49,10 +43,7 @@ defmodule Alighieri.Backend.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      setup: ["deps.get"]
     ]
   end
 end

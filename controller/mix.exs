@@ -4,7 +4,7 @@ defmodule Alighieri.Controller.MixProject do
   def project do
     [
       app: :alighieri_controller,
-      version: "0.1.0-dev",
+      version: "1.0.0-rc0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -21,6 +21,7 @@ defmodule Alighieri.Controller.MixProject do
   defp deps do
     [
       {:jason, "~> 1.4"},
+      {:dhcp_server, "~> 0.7"},
 
       # Dev deps
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},

@@ -1,7 +1,7 @@
 import { Box, Button, Flex, Input, Text, useToast } from "@chakra-ui/react";
 import { useState } from "react";
-import { setDhcpSettings } from "./backendController";
-import { DhcpSettings } from "./types";
+import { DhcpSettings } from "../../types";
+import { setDhcpSettings } from "../../utils/backendController";
 
 export function DHCPSettings() {
   const toast = useToast();

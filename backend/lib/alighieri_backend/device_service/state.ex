@@ -1,50 +1,77 @@
 defmodule Alighieri.Backend.DeviceService.State do
   @moduledoc false
 
-  alias Alighieri.Device
+  alias Alighieri.{ChannelAddress, Device, Subscription}
 
   @type device_id :: integer()
   @type devices :: %{device_id() => Device.t()}
 
   @type t :: %__MODULE__{
           client: term(),
+          ident_caddr: ChannelAddress.t(),
           devices: devices(),
           device_mac_to_id: %{String.t() => device_id()},
           device_name_to_id: %{String.t() => device_id()},
+          visible_devices: MapSet.t(device_id()),
+          # %{device_name => [subs]}
+          tx_subscriptions: %{String.t() => [Subscription.t()]},
           next_device_id: device_id(),
           last_fetch: integer()
         }
 
-  @enforce_keys [:client]
+  @enforce_keys [:client, :ident_caddr]
 
   defstruct @enforce_keys ++
               [
                 devices: %{},
                 device_mac_to_id: %{},
                 device_name_to_id: %{},
+                visible_devices: MapSet.new(),
+                tx_subscriptions: %{},
                 next_device_id: 1,
                 last_fetch: System.monotonic_time(:millisecond)
               ]
 
-  @spec devices(t()) :: devices()
-  def devices(state), do: state.devices
+  @spec devices(t(), boolean()) :: devices()
+  def devices(state, only_visible? \\ true)
 
-  @spec add_device(t(), Device.t()) :: t()
+  def devices(state, true) do
+    Enum.filter(state.devices, fn {id, _dt} -> MapSet.member?(state.visible_devices, id) end)
+    |> Map.new()
+  end
+
+  def devices(state, false), do: state.devices
+
+  @spec add_device(t(), Device.t()) :: {device_id(), t()}
   def add_device(%__MODULE__{next_device_id: id} = state, device) do
-    %__MODULE__{
+    state = %__MODULE__{
       state
       | devices: Map.put(state.devices, id, device),
         device_mac_to_id: Map.put(state.device_mac_to_id, device.mac_address, id),
         device_name_to_id: Map.put(state.device_name_to_id, device.name, id),
         next_device_id: id + 1
     }
+
+    {id, state}
   end
 
-  @spec put_device(t(), Device.t()) :: t()
+  @spec put_device(t(), Device.t()) :: {device_id(), t()}
   def put_device(state, device) do
     case Map.get(state.device_mac_to_id, device.mac_address) do
-      nil -> add_device(state, device)
-      id -> %{state | devices: Map.put(state.devices, id, device)}
+      nil ->
+        add_device(state, device)
+
+      id ->
+        old_device = Map.fetch!(state.devices, id)
+
+        new_device = %{
+          device
+          | sample_rate: device.sample_rate || old_device.sample_rate,
+            supported_sample_rates:
+              device.supported_sample_rates || old_device.supported_sample_rates
+        }
+
+        {id, %{state | devices: Map.put(state.devices, id, new_device)}}
     end
   end
 

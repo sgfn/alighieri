@@ -1,6 +1,9 @@
 import Config
 
 config :alighieri_controller,
+  start_app: true,
   netaudio_path: System.get_env("ALI_NETAUDIO_PATH", "netaudio") |> Path.expand(),
   node: System.get_env("ALI_DIST_NODE", "alicontroller@controller") |> String.to_atom(),
-  dist_cookie: System.get_env("ALI_DIST_COOKIE", "alighieri-cookie") |> String.to_atom()
+  dist_cookie: System.get_env("ALI_DIST_COOKIE", "alighieri-cookie") |> String.to_atom(),
+  net_iface: System.get_env("ALI_NET_IFACE", "eth0"),
+  enable_dhcp_server: System.get_env("ALI_ENABLE_DHCP_SERVER", "true") == "true"

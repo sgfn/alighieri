@@ -8,20 +8,38 @@ defmodule Alighieri.Controller.Application do
   @epmd_timeout_ms 5_000
   @epmd_pgrep_interval_ms 500
 
+  @default_dhcp_config [
+    netmask: "255.255.255.0",
+    range: {"10.0.0.100", "10.0.0.199"}
+  ]
+
   @impl true
   def start(_type, _args) do
-    Logger.info("Starting Alighieri controller")
-
-    :ok = setup_distribution()
-    Alighieri.Controller.Netaudio.version!() |> Logger.info()
-
-    children = [
-      # {Registry, keys: :unique, name: Alighieri.Controller.Registry},
-    ]
-
     opts = [strategy: :one_for_one, name: Alighieri.Controller.Supervisor]
 
-    Supervisor.start_link(children, opts)
+    if Application.fetch_env!(:alighieri_controller, :start_app) do
+      Logger.info("Starting Alighieri controller")
+
+      :ok = setup_distribution()
+      Alighieri.Controller.Netaudio.version!() |> Logger.info()
+
+      children =
+        if Application.fetch_env!(:alighieri_controller, :enable_dhcp_server) do
+          Logger.info("Starting DHCP server")
+
+          dhcp_config =
+            @default_dhcp_config
+            |> Keyword.put(:iface, Application.fetch_env!(:alighieri_controller, :net_iface))
+
+          [{Alighieri.Controller.DHCP, dhcp_config}]
+        else
+          []
+        end
+
+      Supervisor.start_link(children, opts)
+    else
+      Supervisor.start_link([], opts)
+    end
   end
 
   defp setup_distribution() do
@@ -40,10 +58,9 @@ defmodule Alighieri.Controller.Application do
         {:error, reason} ->
           raise "Couldn't start node, reason: #{inspect(reason)}"
       end
-
-      Application.fetch_env!(:alighieri_controller, :dist_cookie) |> Node.set_cookie()
     end
 
+    Application.fetch_env!(:alighieri_controller, :dist_cookie) |> Node.set_cookie()
     :ok
   end
 
