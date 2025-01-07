@@ -3,7 +3,7 @@ defmodule Alighieri.BackendWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-    # plug :auth
+    plug :auth
   end
 
   scope "/", Alighieri.BackendWeb do
