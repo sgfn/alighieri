@@ -64,24 +64,26 @@ const RoutingView = forwardRef(({ onSubscriptionRemove, onRefresh }: RoutingView
     }
     const addSubscriptions = (subscriptions: Subscription[]) => {
         console.log('new subs:', subscriptions);
-        const edgesSet = new Set(edges.map(edge => edge.id));
-        const newEdges: Edge[] = getEdges(subscriptions).filter(edge => !edgesSet.has(edge.id))
-        for (let edge of newEdges) {
-            edgesSet.add(edge.id);
-        }
-        const newEdgesChanges: EdgeChange[] = newEdges.map(edge => ({ type: 'add', item: edge }))
-        let newSubscriptionsStr = "";
-        for (let subscription of subscriptions) {
-            newSubscriptionsStr = newSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
-        }
-        newSubscriptionsStr = newSubscriptionsStr.slice(0, -2);
-        toast({
-            title: 'found new subscriptions',
-            description: newSubscriptionsStr,
-            position: 'top',
-            status: 'info'
-        })
-        onEdgesChange(newEdgesChanges);
+        //const edgesSet = new Set(edges.map(edge => edge.id));
+        console.log('get edges:', getEdges(subscriptions));
+        setEdges(getEdges(subscriptions));
+        //const newEdges: Edge[] = getEdges(subscriptions).filter(edge => !edgesSet.has(edge.id))
+        //for (let edge of newEdges) {
+        //    edgesSet.add(edge.id);
+        //}
+        //const newEdgesChanges: EdgeChange[] = newEdges.map(edge => ({ type: 'add', item: edge }))
+        //let newSubscriptionsStr = "";
+        //for (let subscription of subscriptions) {
+        //    newSubscriptionsStr = newSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
+        //}
+        //newSubscriptionsStr = newSubscriptionsStr.slice(0, -2);
+        //toast({
+        //    title: 'found new subscriptions',
+        //    description: newSubscriptionsStr,
+        //    position: 'top',
+        //    status: 'info'
+        //})
+        //onEdgesChange(newEdgesChanges);
     };
     const removeSubscriptions = (subscriptions: Subscription[]) => {
         console.log('remove subs:', subscriptions);

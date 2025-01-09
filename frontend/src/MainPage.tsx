@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from "@xyflow/react";
-import { Grid, GridItem } from "@chakra-ui/react";
+import { Grid, GridItem, useToast } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import InfoView from "./info-view/InfoView";
 import RoutingView, { RoutingViewMethods } from "./routing/RoutingView";
@@ -7,6 +7,7 @@ import { Device, SimpleSubscription, Subscription, subscriptionToSimple } from "
 import { getDevices, getSubscriptions } from "./utils/backendController";
 
 export default function MainPage() {
+  const toast = useToast();
   const [devices, setDevices] = useState<Device[]>([])
   const [devicesSet, _setDevicesSet] = useState<Set<number>>(new Set());
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -33,28 +34,52 @@ export default function MainPage() {
     //setDevices(updateDevices);
   }
 
-  const updateSubscriptions = (updateSimpleSubscriptions: Subscription[]) => {
+  const updateSubscriptions = (simpleSubscriptions: Subscription[]) => {
     //console.log('subscriptions set:', subscriptionsSet);
-    const newSubscriptions = updateSimpleSubscriptions.filter(subscription => !subscriptionsSet.has(JSON.stringify(subscriptionToSimple(subscription))));
+    const newSubscriptions = simpleSubscriptions.filter(subscription => !subscriptionsSet.has(JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('new:', newSubscriptions);
-    const updateSubscriptionsSet = new Set(updateSimpleSubscriptions.map(subscription => JSON.stringify(subscriptionToSimple(subscription))));
+    const updateSubscriptionsSet = new Set(simpleSubscriptions.map(subscription => JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('udapte set:', updateSubscriptionsSet);
     //console.log('simple:', subscriptions.map(subscription => subscriptionToSimple(subscription)));
     const oldSubscriptions = subscriptions.filter(subscription => !updateSubscriptionsSet.has(JSON.stringify(subscriptionToSimple(subscription))));
     //console.log('old:', oldSubscriptions);
     if (ref.current) {
+      ref.current.addSubscriptions(simpleSubscriptions);
       if (newSubscriptions.length > 0) {
-        ref.current.addSubscriptions(newSubscriptions);
+        let newSubscriptionsStr = "";
+        for (let subscription of newSubscriptions) {
+          newSubscriptionsStr = newSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
+        }
+        newSubscriptionsStr = newSubscriptionsStr.slice(0, -2);
+        toast({
+          title: 'found new subscriptions',
+          description: newSubscriptionsStr,
+          position: 'top',
+          status: 'info'
+        })
+        //ref.current.addSubscriptions(simpleSubscriptions);
       }
       if (oldSubscriptions.length > 0) {
-        ref.current.removeSubscriptions(oldSubscriptions);
+        let oldSubscriptionsStr = "";
+        for (let subscription of oldSubscriptions) {
+          oldSubscriptionsStr = oldSubscriptionsStr + `${subscription.transmitter.deviceName}/${subscription.transmitter.channelName} -> ${subscription.receiver.deviceName}/${subscription.receiver.channelName}, `;
+        }
+        oldSubscriptionsStr = oldSubscriptionsStr.slice(0, -2);
+        toast({
+          title: 'removed subscriptions',
+          description: oldSubscriptionsStr,
+          position: 'top',
+          status: 'info'
+        })
+        //ref.current.removeSubscriptions(oldSubscriptions);
+        //ref.current.addSubscriptions(simpleSubscriptions);
       }
     }
     for (let subscription of newSubscriptions) {
-      subscriptionsSet.add(JSON.stringify(subscription));
+      subscriptionsSet.add(JSON.stringify(subscriptionToSimple(subscription)));
     }
     for (let subscription of oldSubscriptions) {
-      subscriptionsSet.delete(JSON.stringify(subscription));
+      subscriptionsSet.delete(JSON.stringify(subscriptionToSimple(subscription)));
     }
     //setSubscriptions(updateSubscriptions);
   }
@@ -90,16 +115,16 @@ export default function MainPage() {
     await fetchSubscriptions();
   }
 
-  //const FETCH_INTERVAL = 10_000;
-  //
-  //useEffect(() => {
-  //  const interval = setInterval(async () => {
-  //    console.log('fetch devices and subscriptions from backend');
-  //    await fetchAll();
-  //  }, FETCH_INTERVAL);
-  //
-  //  return () => clearInterval(interval);
-  //}, [])
+  const FETCH_INTERVAL = 10_000;
+
+  useEffect(() => {
+    const interval = setTimeout(async () => {
+      console.log('fetch devices and subscriptions from backend');
+      await fetchAll();
+    }, FETCH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [devices, subscriptions, setDevices, setSubscriptions, devicesSet, subscriptionsSet]);
 
   const onSubscriptionRemove = (simpleSubscription: SimpleSubscription) => {
     //setSubscriptions(subscriptions.filter(subscription => !compareSimpleToSubscription(simpleSubscription, subscription)))

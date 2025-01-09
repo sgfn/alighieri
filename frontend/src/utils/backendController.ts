@@ -1,7 +1,6 @@
 import { ChannelAddress, channelAddressToJson, Device, deviceFromJson, DeviceJson, DhcpSettings, SimpleSubscriptionJson, Subscription, subscriptionFromJson, SubscriptionJson } from "../types";
 
-const hostname = '192.168.226.5';
-//const hostname = window.location.hostname;
+const hostname = window.location.hostname;
 const BASE_URL = `http://${hostname}:4000/`;
 
 export async function createSubscription(subscriptionJson: SimpleSubscriptionJson) {
